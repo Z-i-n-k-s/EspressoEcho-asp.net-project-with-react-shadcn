@@ -1,0 +1,411 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "G:\\Project\\sd-3.2\\backend\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\database\\coffeeshopcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:database\\coffeeshopcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\feedbackreplies.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\feedbackreplies.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\branches.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\branches.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\users.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\users.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\userroles.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\userroles.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\salessummaries.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\salessummaries.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\roles.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\roles.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\promotions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\promotions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\products.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\products.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\productreviews.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\productreviews.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\productcategories.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\productcategories.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\payments.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\payments.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\orders.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\orders.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\orderitems.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\orderitems.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\inventorytransfers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\inventorytransfers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\feedbacks.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\feedbacks.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\employees.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\employees.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\customers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\customers.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\customerpromotions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\customerpromotions.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\categories.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\categories.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\branchinventory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:models\\branchinventory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 6,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "Promotions.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\Promotions.cs",
+              "RelativeDocumentMoniker": "Models\\Promotions.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\Promotions.cs",
+              "RelativeToolTip": "Models\\Promotions.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:15:00.372Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "Roles.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\Roles.cs",
+              "RelativeDocumentMoniker": "Models\\Roles.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\Roles.cs",
+              "RelativeToolTip": "Models\\Roles.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:08:40.035Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "SalesSummaries.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\SalesSummaries.cs",
+              "RelativeDocumentMoniker": "Models\\SalesSummaries.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\SalesSummaries.cs",
+              "RelativeToolTip": "Models\\SalesSummaries.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:13:49.46Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "UserRoles.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\UserRoles.cs",
+              "RelativeDocumentMoniker": "Models\\UserRoles.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\UserRoles.cs",
+              "RelativeToolTip": "Models\\UserRoles.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:09:06.122Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Users.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\Users.cs",
+              "RelativeDocumentMoniker": "Models\\Users.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\Users.cs",
+              "RelativeToolTip": "Models\\Users.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:07:56.503Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Program.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-01T15:12:13.629Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "CoffeeShopContext.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\DataBase\\CoffeeShopContext.cs",
+              "RelativeDocumentMoniker": "DataBase\\CoffeeShopContext.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\DataBase\\CoffeeShopContext.cs",
+              "RelativeToolTip": "DataBase\\CoffeeShopContext.cs",
+              "ViewState": "AgIAAC8AAAAAAAAAAAAswHUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:04:52.671Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Branches.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\Branches.cs",
+              "RelativeDocumentMoniker": "Models\\Branches.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\Branches.cs",
+              "RelativeToolTip": "Models\\Branches.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:09:51.151Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\appsettings.json",
+              "RelativeDocumentMoniker": "appsettings.json",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\appsettings.json",
+              "RelativeToolTip": "appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-08-02T15:01:36.336Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "FeedbackReplies.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\FeedbackReplies.cs",
+              "RelativeDocumentMoniker": "Models\\FeedbackReplies.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\FeedbackReplies.cs",
+              "RelativeToolTip": "Models\\FeedbackReplies.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:14:45.266Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "Products.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\Products.cs",
+              "RelativeDocumentMoniker": "Models\\Products.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\Products.cs",
+              "RelativeToolTip": "Models\\Products.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:10:18.112Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "ProductReviews.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\ProductReviews.cs",
+              "RelativeDocumentMoniker": "Models\\ProductReviews.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\ProductReviews.cs",
+              "RelativeToolTip": "Models\\ProductReviews.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:14:07.643Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "ProductCategories.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\ProductCategories.cs",
+              "RelativeDocumentMoniker": "Models\\ProductCategories.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\ProductCategories.cs",
+              "RelativeToolTip": "Models\\ProductCategories.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:10:53.671Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "Payments.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\Payments.cs",
+              "RelativeDocumentMoniker": "Models\\Payments.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\Payments.cs",
+              "RelativeToolTip": "Models\\Payments.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:13:25.184Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "Orders.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\Orders.cs",
+              "RelativeDocumentMoniker": "Models\\Orders.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\Orders.cs",
+              "RelativeToolTip": "Models\\Orders.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:12:10.223Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "OrderItems.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\OrderItems.cs",
+              "RelativeDocumentMoniker": "Models\\OrderItems.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\OrderItems.cs",
+              "RelativeToolTip": "Models\\OrderItems.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:12:39.996Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "InventoryTransfers.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\InventoryTransfers.cs",
+              "RelativeDocumentMoniker": "Models\\InventoryTransfers.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\InventoryTransfers.cs",
+              "RelativeToolTip": "Models\\InventoryTransfers.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:11:33.773Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "Feedbacks.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\Feedbacks.cs",
+              "RelativeDocumentMoniker": "Models\\Feedbacks.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\Feedbacks.cs",
+              "RelativeToolTip": "Models\\Feedbacks.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:14:27.917Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "Employees.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\Employees.cs",
+              "RelativeDocumentMoniker": "Models\\Employees.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\Employees.cs",
+              "RelativeToolTip": "Models\\Employees.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:09:31.219Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "Customers.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\Customers.cs",
+              "RelativeDocumentMoniker": "Models\\Customers.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\Customers.cs",
+              "RelativeToolTip": "Models\\Customers.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:11:50.88Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "CustomerPromotions.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\CustomerPromotions.cs",
+              "RelativeDocumentMoniker": "Models\\CustomerPromotions.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\CustomerPromotions.cs",
+              "RelativeToolTip": "Models\\CustomerPromotions.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:15:31.654Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "Categories.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\Categories.cs",
+              "RelativeDocumentMoniker": "Models\\Categories.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\Categories.cs",
+              "RelativeToolTip": "Models\\Categories.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:10:34.921Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "BranchInventory.cs",
+              "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\BranchInventory.cs",
+              "RelativeDocumentMoniker": "Models\\BranchInventory.cs",
+              "ToolTip": "G:\\Project\\sd-3.2\\backend\\Models\\BranchInventory.cs",
+              "RelativeToolTip": "Models\\BranchInventory.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-08-02T15:11:13.727Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
