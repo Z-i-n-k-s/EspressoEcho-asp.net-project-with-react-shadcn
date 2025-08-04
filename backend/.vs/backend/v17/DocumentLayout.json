@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "G:\\Project\\sd-3.2\\backend\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\database\\coffeeshopcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:database\\coffeeshopcontext.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -13,10 +17,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{B4E06F6D-AF69-49C9-A40D-5CF40A341864}|backend.csproj|g:\\project\\sd-3.2\\backend\\models\\branches.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -102,7 +102,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 6,
+          "SelectedChildIndex": 5,
           "Children": [
             {
               "$type": "Document",
@@ -114,8 +114,7 @@
               "RelativeToolTip": "Models\\Promotions.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:15:00.372Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:15:00.372Z"
             },
             {
               "$type": "Document",
@@ -127,8 +126,7 @@
               "RelativeToolTip": "Models\\Roles.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:08:40.035Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:08:40.035Z"
             },
             {
               "$type": "Document",
@@ -140,8 +138,7 @@
               "RelativeToolTip": "Models\\SalesSummaries.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:13:49.46Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:13:49.46Z"
             },
             {
               "$type": "Document",
@@ -153,8 +150,7 @@
               "RelativeToolTip": "Models\\UserRoles.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:09:06.122Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:09:06.122Z"
             },
             {
               "$type": "Document",
@@ -166,12 +162,11 @@
               "RelativeToolTip": "Models\\Users.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:07:56.503Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:07:56.503Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 0,
               "Title": "Program.cs",
               "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
@@ -184,13 +179,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "CoffeeShopContext.cs",
               "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\DataBase\\CoffeeShopContext.cs",
               "RelativeDocumentMoniker": "DataBase\\CoffeeShopContext.cs",
               "ToolTip": "G:\\Project\\sd-3.2\\backend\\DataBase\\CoffeeShopContext.cs",
               "RelativeToolTip": "DataBase\\CoffeeShopContext.cs",
-              "ViewState": "AgIAAC8AAAAAAAAAAAAswHUAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAACAAAAAAAAAAAAAswHUAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-08-02T15:04:52.671Z",
               "EditorCaption": ""
@@ -205,12 +200,11 @@
               "RelativeToolTip": "Models\\Branches.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:09:51.151Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:09:51.151Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "appsettings.json",
               "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\appsettings.json",
               "RelativeDocumentMoniker": "appsettings.json",
@@ -218,12 +212,11 @@
               "RelativeToolTip": "appsettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAA0AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-08-02T15:01:36.336Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:01:36.336Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "FeedbackReplies.cs",
               "DocumentMoniker": "G:\\Project\\sd-3.2\\backend\\Models\\FeedbackReplies.cs",
               "RelativeDocumentMoniker": "Models\\FeedbackReplies.cs",
@@ -231,8 +224,7 @@
               "RelativeToolTip": "Models\\FeedbackReplies.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:14:45.266Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:14:45.266Z"
             },
             {
               "$type": "Document",
@@ -244,8 +236,7 @@
               "RelativeToolTip": "Models\\Products.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:10:18.112Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:10:18.112Z"
             },
             {
               "$type": "Document",
@@ -257,8 +248,7 @@
               "RelativeToolTip": "Models\\ProductReviews.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:14:07.643Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:14:07.643Z"
             },
             {
               "$type": "Document",
@@ -270,8 +260,7 @@
               "RelativeToolTip": "Models\\ProductCategories.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:10:53.671Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:10:53.671Z"
             },
             {
               "$type": "Document",
@@ -283,8 +272,7 @@
               "RelativeToolTip": "Models\\Payments.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:13:25.184Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:13:25.184Z"
             },
             {
               "$type": "Document",
@@ -296,8 +284,7 @@
               "RelativeToolTip": "Models\\Orders.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:12:10.223Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:12:10.223Z"
             },
             {
               "$type": "Document",
@@ -309,8 +296,7 @@
               "RelativeToolTip": "Models\\OrderItems.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:12:39.996Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:12:39.996Z"
             },
             {
               "$type": "Document",
@@ -322,8 +308,7 @@
               "RelativeToolTip": "Models\\InventoryTransfers.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:11:33.773Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:11:33.773Z"
             },
             {
               "$type": "Document",
@@ -335,8 +320,7 @@
               "RelativeToolTip": "Models\\Feedbacks.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:14:27.917Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:14:27.917Z"
             },
             {
               "$type": "Document",
@@ -348,8 +332,7 @@
               "RelativeToolTip": "Models\\Employees.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:09:31.219Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:09:31.219Z"
             },
             {
               "$type": "Document",
@@ -361,8 +344,7 @@
               "RelativeToolTip": "Models\\Customers.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:11:50.88Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:11:50.88Z"
             },
             {
               "$type": "Document",
@@ -374,8 +356,7 @@
               "RelativeToolTip": "Models\\CustomerPromotions.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:15:31.654Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:15:31.654Z"
             },
             {
               "$type": "Document",
@@ -387,8 +368,7 @@
               "RelativeToolTip": "Models\\Categories.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:10:34.921Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:10:34.921Z"
             },
             {
               "$type": "Document",
@@ -400,8 +380,7 @@
               "RelativeToolTip": "Models\\BranchInventory.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-08-02T15:11:13.727Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-08-02T15:11:13.727Z"
             }
           ]
         }

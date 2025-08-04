@@ -1,0 +1,60 @@
+# Visual Studio files
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+bin/
+obj/
+[Bb]uild/
+[Ll]og/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+*.dll
+*.exe
+*.app
+*.appx
+*.cache
+*.pdb
+
+# Publish output
+/out/
+dist/
+publish/
+wwwroot/lib/
+
+# Dependency directories
+node_modules/
+packages/
+*.nupkg
+*.snupkg
+
+# EF Core Migrations build junk
+[Mm]igrations/*Designer.cs
+[Mm]igrations/*Snapshot.cs
+
+# Configuration / secrets
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.json
+*.secret.json
+
+# Rider / JetBrains
+.idea/
+
+# Mac / Linux
+*.DS_Store
+*.swp
+*.swo
+*.lock
+
+# Logs
+*.log
+logs/
