@@ -1,15 +1,9 @@
-import React from 'react';
-import ManagerSidebar from '../sidebar/ManagerSidebar';
+import React from 'react'
 
 const ManagerDashboard = () => {
   return (
-    <div className="flex">
-      <ManagerSidebar />
-      <div className="flex-1 p-6">
-        <h1 className="text-xl font-semibold">ManagerDashboard</h1>
-      </div>
-    </div>
-  );
-};
+    <div>ManagerDashboard</div>
+  )
+}
 
-export default ManagerDashboard;
+export default ManagerDashboard
