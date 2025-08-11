@@ -1,0 +1,216 @@
+/* === Font Import for Vintage Logo === */
+@font-face {
+  font-family: "Veneer";
+  src: url("./Veneer.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* === CSS Variables: Global Colors === */
+:root {
+  --sienna: #b1560e;
+  --sienna-2: #92633a;
+  --white: #ffffff;
+  --black: #000000;
+  --tan: #967858;
+  --papaya-whip: #cf976ad2;
+}
+
+/* === Hero Section - Only for bottle positioning === */
+.hero {
+  position: relative;
+  min-height: calc(50rem - 80px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--tan);
+  text-align: center;
+  overflow: hidden;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-content h1 {
+  font-family: "Veneer", serif;
+  font-weight: 100;
+  font-size: clamp(8rem, 16vw, 12rem);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 0.5rem 0;
+  line-height: 0.8;
+  color: black;
+  -webkit-text-stroke: 1px rgba(49, 38, 26, 0.712);
+  opacity: 1;
+}
+/* === Bottle Animation Styles === */
+.hero-bottle-wrapper {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 45rem;
+  width: 100%;
+  z-index: 4;
+  opacity: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
+}
+
+.hero-bottle {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  width: auto;
+  height: 100%;
+  margin: 0 auto;
+  filter: drop-shadow(8px 8px 12px rgba(0, 0, 0, 0.15));
+  transform: rotate(20deg) scale(1);
+  transition: filter 0.3s ease;
+  transform-origin: center center;
+}
+
+.hero-stamp {
+  position: absolute;
+  left: 35%;
+  top: 0;
+  right: 0;
+  z-index: 5;
+  transform: translate(-50%, -50%) rotate(-20deg) scale(1);
+  opacity: 0;
+  max-width: 150px;
+  filter: brightness(0.5);
+}
+
+/* === Section Intro - Minimal styles for scroll trigger === */
+.section-intro {
+  background-color: var(--papaya-whip);
+  border-top: 1px solid var(--tan);
+  padding: 1rem 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.intro-grid {
+  display: flex;
+  align-items: center;
+  gap: 4rem;
+  justify-content: space-between;
+}
+
+.intro-left,
+.intro-right {
+  max-width: 30%;
+}
+
+.small-title {
+  font-family: "Inter", sans-serif;
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--sienna-2);
+  margin-bottom: 1rem;
+}
+
+.main-heading {
+  font-family: "Veneer", serif;
+  font-weight: 100;
+  font-size: 4.5rem;
+  line-height: 1.2;
+  color: rgba(73, 30, 6, 0.849);
+  margin-bottom: 1.5rem;
+}
+
+.description {
+  font-size: 1.05rem;
+  color: rgb(43, 17, 3);
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+/* === Ingredients Log Styles === */
+
+
+.ingredients-title {
+  font-family: "Veneer", serif;
+  font-size: 3rem;
+   color: rgba(73, 30, 6, 0.849);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.ingredient-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(12, 12, 11, 0.3);
+}
+
+.ingredient-text {
+  flex: 1;
+}
+
+.ingredient-text strong {
+  display: block;
+  font-weight: 600;
+  color: var(--black);
+  margin-bottom: 0.25rem;
+}
+
+.ingredient-text p {
+  font-size: 0.85rem;
+  color: rgb(109, 41, 10);
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* === Responsive Styles === */
+@media (max-width: 768px) {
+  .hero {
+    min-height: calc(30rem - 80px);
+  }
+
+  .hero-bottle-wrapper {
+    height: 25rem;
+  }
+
+  .hero-stamp {
+    max-width: 100px;
+  }
+
+  .hero-content h1 {
+    font-size: 15vw;
+  }
+
+  .intro-grid {
+    text-align: center;
+    flex-direction: column;
+    gap: 5rem;
+  }
+
+  .intro-left,
+  .intro-right {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .main-heading {
+    font-size: 2.5rem;
+  }
+
+  .ingredients-log {
+    padding: 1.5rem;
+  }
+
+  .ingredients-title {
+    font-size: 1.5rem;
+  }
+}
