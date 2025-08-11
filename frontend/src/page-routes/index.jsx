@@ -31,6 +31,16 @@ import UserFeedback from "@/pages/user-pages/user-feedback/UserFeedback";
 import UserBuyPage from "../pages/user-pages/user-buy-page/UserBuyPage";
 import UserCart from "@/pages/user-pages/user-cart/UserCart";
 import UserStats from "@/pages/user-pages/user-stats/UserStats";
+import Menu from "@/pages/user-without-login/componets/Menu";
+import AboutPreview from "@/pages/user-without-login/about-us/AboutPreview";
+import Reviews from "@/pages/user-without-login/componets/Reviews";
+import Contact from "@/pages/user-without-login/componets/Contact";
+import InteriorImages from "@/pages/user-without-login/componets/InteriorImages";
+import MenuUser from "@/pages/user-without-login/menu-user/MenuUser";
+import AllMenu from "@/pages/user-without-login/menu-user/AllMenu";
+import SliderAbout from "@/pages/user-without-login/about-us/SliderAbout";
+import Branches from "@/pages/user-without-login/branches/Branches";
+import ScrollSection from "@/pages/user-without-login/componets/ScrollSection";
 
 // TEMP: get role from localStorage (replace with Context/Redux later)
 const userRole = localStorage.getItem("role") || ROLE.GENERAL_USER;
@@ -45,8 +55,48 @@ const router = createBrowserRouter([
         element: <LandingPage />,
       },
       {
+        path: "/menu",
+        element: <Menu></Menu>,
+      },
+        {
+        path: "/menu-user",
+        element: <MenuUser></MenuUser>
+      },
+      {
+        path: "/all-menu",
+        element: <AllMenu></AllMenu>
+      },
+       {
+        path: "/about-preview",
+        element: <AboutPreview></AboutPreview>,
+      },
+           {
+        path: "/slider-about",
+        element: <SliderAbout></SliderAbout>
+      },
+      {
         path: "/about-us",
         element: <AboutUs />,
+      },
+      {
+        path: "/reviews",
+        element: <Reviews></Reviews>
+      },
+        {
+        path: "/scroll-section",
+        element: <ScrollSection></ScrollSection>
+      },
+       {
+        path: "/contact",
+        element: <Contact></Contact>
+      },
+        {
+        path: "/interior-images",
+        element: <InteriorImages></InteriorImages>
+      },
+        {
+        path: "/branches",
+        element: <Branches></Branches>
       },
 
       // 🔹 Admin Routes

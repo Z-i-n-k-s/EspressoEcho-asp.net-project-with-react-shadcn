@@ -1,41 +1,96 @@
-import React from "react";
+import React from 'react'
+import FooterBg from '../../../assets/coffee-footer.jpg'
+import { FaFacebook, FaInstagram, FaLinkedin } from "react-icons/fa";
 
-const Footer = () => {
-  return (
-    <footer className="bg-background border-t mt-12">
-      <div className="max-w-7xl mx-auto px-4 py-8 grid md:grid-cols-3 gap-6 text-center md:text-left">
-        
-        {/* Brand / Logo */}
-        <div>
-          <h2 className="text-xl font-bold text-primary">MyApp</h2>
-          <p className="text-sm text-muted-foreground mt-2">
-            © {new Date().getFullYear()} MyApp. All rights reserved.
-          </p>
-        </div>
+const FooterLinks = [
+    {
+        title: "Home",
+        link: "/#",
+    },
+    {
+        title: "About",
+        link: "/#about",
+    },
+    {
+        title: "Contact",
+        link: "/#contact",
+    },
+    {
+        title: "Blog",
+        link: "/#blog",
+    },
+];
 
-        {/* Quick Links */}
-        <div>
-          <h3 className="text-lg font-semibold mb-3">Quick Links</h3>
-          <ul className="space-y-2 text-sm">
-            <li><a href="#" className="hover:text-primary transition">Home</a></li>
-            <li><a href="#" className="hover:text-primary transition">About</a></li>
-            <li><a href="#" className="hover:text-primary transition">Services</a></li>
-            <li><a href="#" className="hover:text-primary transition">Contact</a></li>
-          </ul>
-        </div>
-
-        {/* Social Links */}
-        <div>
-          <h3 className="text-lg font-semibold mb-3">Follow Us</h3>
-          <div className="flex justify-center md:justify-start space-x-4">
-            <a href="#" className="hover:text-primary transition">Facebook</a>
-            <a href="#" className="hover:text-primary transition">Twitter</a>
-            <a href="#" className="hover:text-primary transition">Instagram</a>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
+const bgImage = {
+    backgroundImage: `url(${FooterBg})`,
+    backgroundPosition: "center",
+    backgroundRepeat: "no-repeat",
+    backgroundSize: "cover",
+    minHeight: "400px",
+    width: "100%",
 };
 
-export default Footer;
+const Footer = () => {
+    return (
+        <div style={bgImage} className='text-white'>
+            <div className='bg-black/40 min-h-[400px]'>
+                <div className='max-w-7xl mx-auto grid md:grid-cols-3 pb-20 pt-5'>
+                    {/* company details */}
+                    <div className='py-8 px-4'>
+                        <a href="#" className='font-semibold tracking-widest text-2xl sm:text-3xl font-cursive'>Espresso Echo</a>
+                        <p className='pt-4'>Crafted Coffee, Cozy Vibes, Unforgettable Moments – Your Perfect Espresso Escape</p>
+                        <a href="" target='_blank' className='inline-block bg-[#3d2517] py-2 px-4 mt-5 text-sm rounded-full'>Visit our YouTube Channel</a>
+                    </div>
+                    {/* footer links */}
+                    <div className='col-span-2 grid grid-cols-2 sm:grid-cols-3 md:pl-10'>
+                        <div className='py-8 px-4'>
+                            <h1 className='text-xl font-semibold sm:text-left mb-3'>Important Links</h1>
+                            <ul className='space-y-3'>
+                                {FooterLinks.map((data, index) => (
+                                    <li key={index}>
+                                        <a href={data.link} className='inline-block hover:scale-105 duration-200'>{data.title}</a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        {/* second col links */}
+                        <div className='py-8 px-4'>
+                            <h1 className='text-xl font-semibold sm:text-left mb-3'>
+                                Quick Links
+                            </h1>
+                            <ul className='space-y-3'>
+                                {FooterLinks.map((data, index) => (
+                                    <li key={index}>
+                                        <a href={data.link} className='inline-block hover:scale-105 duration-200'>{data.title}</a>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        {/* company address */}
+                        <div className='py-8 px-4 col-span-2 sm:col-auto'>
+                            <h1 className='text-xl font-semibold sm:text-left mb-3'>Address</h1>
+                            <div>
+                                <p className='mb-3'>Bangladesh</p>
+                                <p>+0123456789</p>
+                                {/* social links */}
+                                <div className='flex items-center gap-3 mt-6'>
+                                    <a href="#">
+                                        <FaInstagram className='text-3xl hover:text-amber-900 duration-300' />
+                                    </a>
+                                    <a href="#">
+                                        <FaFacebook className='text-3xl hover:text-amber-900 duration-300' />
+                                    </a>
+                                    <a href="#">
+                                        <FaLinkedin className='text-3xl hover:text-amber-900 duration-300' />
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default Footer
