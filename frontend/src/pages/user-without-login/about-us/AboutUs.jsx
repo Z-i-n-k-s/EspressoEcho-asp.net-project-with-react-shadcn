@@ -4,7 +4,7 @@ import "aos/dist/aos.css";
 
 import Header from "../componets/Header";
 import Footer from "../componets/footer";
-import SliderAbout from "./SliderAbout";
+import SliderAbout from "./slide-about/SliderAbout";
 import missionImg from "../../../assets/staff/staff10.avif";
 import missionImg1 from "../../../assets/staff/staff11.png";
 

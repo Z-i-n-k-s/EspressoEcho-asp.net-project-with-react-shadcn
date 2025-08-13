@@ -26,6 +26,7 @@ export const sidebarMenus = {
   [ROLE.ADMIN]: [
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin-panel/admin-dashboard" },
     { icon: Building2, label: "Branch Management", path: "/admin-panel/branches" },
+    { icon: Package, label:"Product Management", path: "/admin-panel/products" },
     { icon: Megaphone, label: "Announcements", path: "/admin-panel/announcements" },
     { icon: Users, label: "Employee Management", path: "/admin-panel/employees" },
     { icon: ClipboardList, label: "Reports", path: "/admin-panel/reports" },

@@ -1,16 +1,15 @@
-import React from "react";
-import Header from "../componets/Header";
-import Footer from "../componets/footer";
-import coffee from "../../../assets/coffee2.png";
+import { motion } from "framer-motion";
 import Bean1 from "../../../assets/bean1.png";
 import Bean2 from "../../../assets/bean2.png";
-import { motion } from "framer-motion";
-import Menu from "../componets/Menu";
-import AboutPreview from "../about-us/AboutPreview";
-import Reviews from "../componets/Reviews";
-import Contact from "../componets/Contact";
-import InteriorImages from "../componets/InteriorImages";
-import ScrollSection from "../componets/ScrollSection";
+import coffee from "../../../assets/coffee2.png";
+import Footer from "../componets/footer";
+import Header from "../componets/Header";
+import AboutPreview from "./AboutPreview";
+import Contact from "./Contact";
+import InteriorImages from "./InteriorImages";
+import Menu from "./Menu";
+import Reviews from "./Reviews";
+import ScrollSection from "./scroll-section/ScrollSection";
 
 const LandingPage = () => {
   return (
@@ -18,9 +17,8 @@ const LandingPage = () => {
       {/* Header */}
       <Header />
       {/* Hero Section */}
-       <div className="bg-gradient-to-r from-[#e5c185] via-[#a97c50] to-[#4e342e] mt-10">
-       <div className="max-w-7xl mx-auto grid md:grid-cols-2 items-center justify-center min-h-screen px-4 relative">
-
+      <div className="bg-gradient-to-r from-[#e5c185] via-[#a97c50] to-[#4e342e] mt-10">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 items-center justify-center min-h-screen px-4 relative">
           {/* Text Section */}
           <div className="space-y-5 px-4 md:px-0">
             <motion.h3
@@ -37,7 +35,8 @@ const LandingPage = () => {
               transition={{ duration: 1, delay: 0.4 }}
               className="text-4xl md:text-6xl font-bold font-cursive2"
             >
-              Experience Artisanal <span className="text-amber-900">Coffee</span> at EspressoEcho
+              Experience Artisanal{" "}
+              <span className="text-amber-900">Coffee</span> at EspressoEcho
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, x: -60 }}
@@ -54,26 +53,30 @@ const LandingPage = () => {
               className="flex gap-2"
             >
               <a href="#menu">
-                <button className="bg-amber-900 text-white px-4 py-2 rounded-md">View Menu</button>
+                <button className="bg-amber-900 text-white px-4 py-2 rounded-md">
+                  View Menu
+                </button>
               </a>
               <a href="#story">
-                <button className="bg-transparent border border-amber-900 text-amber-900 rounded-md px-4 py-2">Our Story</button>
+                <button className="bg-transparent border border-amber-900 text-amber-900 rounded-md px-4 py-2">
+                  Our Story
+                </button>
               </a>
             </motion.div>
           </div>
 
           {/* Image Section */}
-<motion.img
-  src={coffee}
-  alt="Coffee Cup"
-  className="w-[500px]"
-  animate={{ rotate: 360 }}
-  transition={{
-    repeat: Infinity,
-    duration: 10, 
-    ease: "linear"
-  }}
-/>
+          <motion.img
+            src={coffee}
+            alt="Coffee Cup"
+            className="w-[500px]"
+            animate={{ rotate: 360 }}
+            transition={{
+              repeat: Infinity,
+              duration: 10,
+              ease: "linear",
+            }}
+          />
           {/* Decorative Beans */}
           <motion.img
             initial={{ opacity: 0, x: 400, scale: 0.7 }}
@@ -101,15 +104,14 @@ const LandingPage = () => {
           />
         </div>
       </div>
-     
 
-     {/* other components */}
-    <ScrollSection></ScrollSection>
-    <Menu></Menu>
-    <AboutPreview></AboutPreview>
-    <InteriorImages></InteriorImages>
-    <Reviews></Reviews>
-    <Contact></Contact>
+      {/* other components */}
+      <ScrollSection></ScrollSection>
+      <Menu></Menu>
+      <AboutPreview></AboutPreview>
+      <InteriorImages></InteriorImages>
+      <Reviews></Reviews>
+      <Contact></Contact>
       {/* Footer */}
       <Footer />
     </div>
