@@ -26,7 +26,7 @@ export const sidebarMenus = {
   [ROLE.ADMIN]: [
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin-panel/admin-dashboard" },
     { icon: Building2, label: "Branch Management", path: "/admin-panel/branches" },
-    { icon: Package, label:"Product Management", path: "/admin-panel/products" },
+    { icon: Package, label: "Product Management", path: "/admin-panel/products" },
     { icon: Megaphone, label: "Announcements", path: "/admin-panel/announcements" },
     { icon: Users, label: "Employee Management", path: "/admin-panel/employees" },
     { icon: ClipboardList, label: "Reports", path: "/admin-panel/reports" },
@@ -59,9 +59,9 @@ export const sidebarMenus = {
   ],
 
   [ROLE.GENERAL_USER]: [
-    { icon: Zap, label: "Buy Now", path: "/user-panel/buy-now" },       // entry page
-    { icon: ShoppingCart, label: "Cart", path: "/user-panel/cart" },    // 🛒 cart
-    { icon: BarChart3, label: "Stats", path: "/user-panel/stats" },     // 📊 static stats
+    { icon: Zap, label: "Buy Now", path: "/user-panel/buy-now" },
+    { icon: ShoppingCart, label: "Cart", path: "/user-panel/cart" },
+    { icon: BarChart3, label: "Stats", path: "/user-panel/stats" },
     { icon: Gift, label: "Promotions", path: "/user-panel/promotions" },
     { icon: ListOrdered, label: "My Orders", path: "/user-panel/orders" },
     { icon: Star, label: "My Reviews", path: "/user-panel/reviews" },
