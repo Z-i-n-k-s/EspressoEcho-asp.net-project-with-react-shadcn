@@ -1,5 +1,4 @@
 import { Package } from 'lucide-react'
-import React from 'react'
 
 export default function ProductBreakdown({ dailyData }) {
   return (

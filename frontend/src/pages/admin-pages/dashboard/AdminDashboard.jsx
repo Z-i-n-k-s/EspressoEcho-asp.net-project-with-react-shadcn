@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 import { KpiCard } from "./KpiCard";
 import { SalesChart } from "./SalesChart";
@@ -6,23 +6,24 @@ import { Alerts } from "./Alerts";
 import { BranchTable } from "./BranchTable";
 
 export const AdminDashboard = () => {
-  //const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  // useEffect(() => {
-  //   loadDashboardData();
-  // }, []);
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
 
-  // // Load all dashboard data in parallel
-  // const loadDashboardData = async () => {
-  //   setLoading(true);
-  //   try {
-  //     await Promise.all([]);
-  //   } catch (error) {
-  //     console.error("Error loading admin dashboard:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  // Load all dashboard data in parallel
+  const loadDashboardData = async () => {
+    setLoading(true);
+    try {
+      await new Promise((resolve) => setTimeout(resolve, 800));//simulate api delay show loading
+
+    } catch (error) {
+      console.error("Error loading admin dashboard:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-6 min-h-screen bg-gradient-to-b from-[#f5e6d3] to-[#6b4226] p-6 font-[Inter] rounded-lg shadow-inner">
@@ -30,11 +31,15 @@ export const AdminDashboard = () => {
         ☕ Admin Dashboard
       </h1>
 
-      {/* {loading ? (
-        <p className="text-center text-[#5c4033] italic">
-          Loading dashboard...
-        </p>
-      ) : ( */}
+      {loading ? (
+      
+<div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6b4226]"></div>
+          <span className="ml-3 text-[#6b4226] font-semibold">
+            Loading branches...
+          </span>
+        </div>
+      ) : (
         <>
         
           {/* KPI Cards */}
@@ -54,7 +59,7 @@ export const AdminDashboard = () => {
           {/* Branch Table */}
           <BranchTable />
         </>
-      {/* )} */}
+       )} 
     </div>
   );
 };

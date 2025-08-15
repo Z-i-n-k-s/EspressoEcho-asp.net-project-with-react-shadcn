@@ -15,12 +15,14 @@ export default function InventoryManagement() {
 
 
   useEffect(() => {
+    
     fetchInventory();
   }, []);
 
   const fetchInventory = async () => {
     setLoading(true);
     try {
+      await new Promise((resolve) => setTimeout(resolve, 800));//simulate api delay show loading
       const data = [
         {
           id: 1,
