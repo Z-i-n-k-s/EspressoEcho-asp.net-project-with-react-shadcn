@@ -92,7 +92,7 @@ const AboutUs = () => {
         {/* Mission & Vision */}
         <div className="md:px-8">
           <div
-            className="grid md:grid-cols-2 gap-8 mb-12 items-center p-6 md:p-10"
+            className="grid md:grid-cols-2 gap-8 mb-12 items-center p-6 md:p-10 "
             data-aos="fade-up"
           >
             {/* Image Section */}

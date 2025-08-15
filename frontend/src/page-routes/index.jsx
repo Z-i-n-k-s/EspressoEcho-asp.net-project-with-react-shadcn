@@ -6,7 +6,6 @@ import DailyReports from "@/pages/manager-pages/daily-reports/DailyReports";
 import EmployeePerformance from "@/pages/manager-pages/employee-performance/EmployeePerformance";
 import InventoryTransfer from "@/pages/manager-pages/inventory-transfer/InventoryTransfer";
 import WorkHistory from "@/pages/staff-pages/work-history/WorkHistory";
-import UserPromotions from "@/pages/user-pages/promotions/UserPromotions";
 import UserCart from "@/pages/user-pages/user-cart/UserCart";
 import UserFeedback from "@/pages/user-pages/user-feedback/UserFeedback";
 import UserOrders from "@/pages/user-pages/user-orders/UserOrders";
@@ -34,6 +33,9 @@ import UserBuyPage from "../pages/user-pages/user-buy-page/UserBuyPage";
 import LandingPage from "@/pages/user-without-login/landingPage/LandingPage";
 import AboutUs from "@/pages/user-without-login/about-us/AboutUs";
 import ProtectedRoute from "./ProtectedRoute";
+import SignUp from "@/pages/shared-components/signup/SignUp";
+import Login from "@/pages/shared-components/login/Login";
+import Offers from "@/pages/user-pages/offers/Offers";
 
 
 // TEMP: get role from localStorage (replace with Context/Redux later)
@@ -59,6 +61,14 @@ const router = createBrowserRouter([
       {
         path: "/menu-user",
         element: <MenuUser />
+      },
+      {
+        path: "/sign-up",
+        element: <SignUp/>
+      },
+       {
+        path: "/login",
+        element: <Login/>
       },
 
       // 🔹 Admin Routes
@@ -301,9 +311,9 @@ const router = createBrowserRouter([
           {
             path: "user-panel/cart",
             element: (
-              <SidebarLayout>
+              
                 <UserCart />
-              </SidebarLayout>
+              
             ),
           },
           {
@@ -315,11 +325,11 @@ const router = createBrowserRouter([
             ),
           },
           {
-            path: "user-panel/promotions",
+            path: "user-panel/offers",
             element: (
-              <SidebarLayout>
-                <UserPromotions />
-              </SidebarLayout>
+          
+                <Offers />
+              
             ),
           },
           {
