@@ -2,11 +2,13 @@ import React from "react";
 import ROLE from "@/lib/roles";
 import Sidebar from "../../pages/shared-components/sidebar/Sidebar";
 
+
 //const userRole = localStorage.getItem("role") || ROLE.ADMIN; 
 //const userRole = localStorage.getItem("role") || ROLE.MANAGER; 
 //const userRole = localStorage.getItem("role") || ROLE.STAFF; 
 //const userRole = localStorage.getItem("role") || ROLE.CASHIER; 
  const userRole = localStorage.getItem("role") || ROLE.GENERAL_USER;
+
 
 const SidebarLayout = ({ children }) => {
   return (

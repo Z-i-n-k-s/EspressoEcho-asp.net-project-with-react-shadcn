@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import React from 'react'
 
 export default function Cards({ stats }) {
@@ -25,13 +25,20 @@ export default function Cards({ stats }) {
             <h3 className="text-xl font-bold">{stats.rejected}</h3>
           </div>
         </div>
-        <div className="bg-yellow-50 p-4 rounded-xl shadow-lg border border-yellow-200 flex items-center gap-3">
+        {/* <div className="bg-yellow-50 p-4 rounded-xl shadow-lg border border-yellow-200 flex items-center gap-3">
           <AlertTriangle className="text-yellow-700" />
           <div>
             <p className="text-sm text-yellow-700">Low Stock Alerts</p>
             <h3 className="text-xl font-bold">{stats.lowStock}</h3>
           </div>
+        </div> */}
+          <div className="bg-blue-50 p-4 rounded-xl shadow-lg border border-blue-200 flex items-center gap-3">
+        <CheckCircle2 className="text-blue-700" />
+        <div>
+          <p className="text-sm text-blue-700">Approved Transfers</p>
+          <h3 className="text-xl font-bold">{stats.approved}</h3>
         </div>
+      </div>
       </div>
   )
 }

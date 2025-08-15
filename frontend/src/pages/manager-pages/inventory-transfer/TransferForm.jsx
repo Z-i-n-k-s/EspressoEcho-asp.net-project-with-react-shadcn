@@ -54,9 +54,10 @@ export default function TransferForm() {
               type="number"
               className="p-3 border border-[#e7dcd3] rounded-lg bg-[#fffaf5] focus:outline-none focus:ring-2 focus:ring-[#d4a373]"
               placeholder="Quantity"
+              min={0}
               value={formData.quantity}
               onChange={(e) =>
-                setFormData({ ...formData, quantity: e.target.value })
+                setFormData({ ...formData, quantity: Math.max(0, Number(e.target.value)) })
               }
             />
             <textarea

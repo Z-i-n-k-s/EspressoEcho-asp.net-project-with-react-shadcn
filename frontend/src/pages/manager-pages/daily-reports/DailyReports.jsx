@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import DateSelector from "./DateSelector";
+import { useEffect, useState } from "react";
 import DailySummary from "./DailySummary";
+import DateSelector from "./DateSelector";
 import ProductBreakdown from "./ProductBreakdown";
 import SalesChart from "./SalesChart";
 
@@ -26,11 +26,21 @@ export default function SalesReport() {
     return today.toISOString().slice(0, 10); // YYYY-MM-DD
   });
   const [dailyData, setDailyData] = useState(null);
-
+  const [loading, setLoading] = useState(false);
   useEffect(() => {
     const loadDaily = async () => {
-      const data = await fetchDailyDetailedData(day);
-      setDailyData(data);
+      setLoading(true);
+
+      try {
+        await new Promise((resolve) => setTimeout(resolve, 800));//simulate api delay show loading
+
+        const data = await fetchDailyDetailedData(day);
+        setDailyData(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
     loadDaily();
   }, [day]);
@@ -40,22 +50,32 @@ export default function SalesReport() {
       <h1 className="text-4xl font-extrabold text-[#5c4033] mb-6 flex items-center gap-3">
         ☕ Daily Sales Report
       </h1>
+      {loading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6b4226]"></div>
+          <span className="ml-3 text-[#6b4226] font-semibold">
+            Loading Reports...
+          </span>
+        </div>
+      ) : (
+        <>
+          {/* Date Picker */}
+          <div className="flex flex-wrap gap-4 mb-6">
+            <DateSelector date={day} onChange={setDay} />
+          </div>
 
-      {/* Date Picker */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        <DateSelector date={day} onChange={setDay} />
-      </div>
+          {/* Daily Summary */}
+          <DailySummary dailyData={dailyData} />
 
-      {/* Daily Summary */}
-      <DailySummary dailyData={dailyData} />
+          {/* Sales Overview */}
 
-      {/* Sales Overview */}
+          {/* Product Breakdown */}
+          <ProductBreakdown dailyData={dailyData} />
 
-      {/* Product Breakdown */}
-      <ProductBreakdown dailyData={dailyData} />
-
-      {/* Sales Chart */}
-      <SalesChart dailyData={dailyData} />
+          {/* Sales Chart */}
+          <SalesChart dailyData={dailyData} />
+        </>
+      )}
     </div>
   );
 }
