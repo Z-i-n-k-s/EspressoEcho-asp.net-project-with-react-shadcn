@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
+    Area,
+    AreaChart,
+    CartesianGrid,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from "recharts";
 
 export const SalesChart = () => {

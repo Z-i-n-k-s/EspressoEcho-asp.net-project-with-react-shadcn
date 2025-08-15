@@ -25,6 +25,7 @@ export default function EmployeePerformance() {
   //================================ data fetching +======================//
   const fetchEmployees = async () => {
     try {
+      await new Promise((resolve) => setTimeout(resolve, 800));
       setLoading(true);
       setError(null);
 
@@ -121,7 +122,10 @@ export default function EmployeePerformance() {
       </div>
 
       {loading && (
-        <p className="text-[#5c4033]">Loading employee performance...</p>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6b4226]"></div>
+          <span className="ml-3 text-[#6b4226] font-semibold">Loading employee perfomance..</span>
+        </div>
       )}
       {error && <p className="text-red-600">Error: {error}</p>}
 

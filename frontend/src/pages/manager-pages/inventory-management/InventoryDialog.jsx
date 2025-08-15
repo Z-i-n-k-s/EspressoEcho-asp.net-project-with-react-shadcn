@@ -87,11 +87,12 @@ export default function InventoryDialog({ isAddMode, currentItem, setCurrentItem
                 <input
                   type="number"
                   step="0.01"
+                  min={0}
                   value={currentItem.basePrice}
                   onChange={(e) =>
                     setCurrentItem({
                       ...currentItem,
-                      basePrice: Number(e.target.value),
+                      basePrice: Math.max(0, Number(e.target.value)),
                     })
                   }
                   className="w-full p-2 border rounded-lg"
@@ -105,11 +106,12 @@ export default function InventoryDialog({ isAddMode, currentItem, setCurrentItem
                 </label>
                 <input
                   type="number"
+                  min={0}
                   value={currentItem.quantity}
                   onChange={(e) =>
                     setCurrentItem({
                       ...currentItem,
-                      quantity: Number(e.target.value),
+                      quantity: Math.max(0, Number(e.target.value)),
                     })
                   }
                   className="w-full p-2 border rounded-lg"
@@ -123,11 +125,12 @@ export default function InventoryDialog({ isAddMode, currentItem, setCurrentItem
                 </label>
                 <input
                   type="number"
+                  min={0}
                   value={currentItem.reorderLevel}
                   onChange={(e) =>
                     setCurrentItem({
                       ...currentItem,
-                      reorderLevel: Number(e.target.value),
+                      reorderLevel: Math.max(0, Number(e.target.value)),
                     })
                   }
                   className="w-full p-2 border rounded-lg"

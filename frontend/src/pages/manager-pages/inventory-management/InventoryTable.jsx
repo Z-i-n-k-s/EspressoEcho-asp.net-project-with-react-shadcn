@@ -50,9 +50,10 @@ export default function InventoryTable({
         <Package className="text-[#6b4226]" /> Branch Inventory
       </h2>
       {loading ? (
-        <p className="text-center text-[#5c4033] italic">
-          Loading inventory...
-        </p>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6b4226]"></div>
+          <span className="ml-3 text-[#6b4226] font-semibold">Loading inventory...</span>
+        </div>
       ) : (
         <div className="overflow-x-auto rounded-2xl shadow-lg">
           <table className="w-full text-left border-collapse">

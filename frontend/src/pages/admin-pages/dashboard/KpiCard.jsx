@@ -6,7 +6,7 @@ export const KpiCard = () => {
   useEffect(() => {
     fetchDashboardMetrics();
   }, []);
-  // 📡 Fetch KPI Metrics
+  // Fetch KPI Metrics
   const fetchDashboardMetrics = async () => {
     try {
       // const res = await fetch("/api/dashboard/metrics");

@@ -11,32 +11,48 @@ export default function TransferHistory({ setStats }) {
  
 
   const fetchTransferHistory = async () => {
-    // Fake data for now
-    const data = [
-      {
-        id: 101,
-        fromBranch: "Branch 2",
-        toBranch: "Branch 1",
-        item: "Monitor",
-        quantity: 3,
-        status: "Completed",
-        date: "2025-08-05",
-      },
-      {
-        id: 102,
-        fromBranch: "Branch 1",
-        toBranch: "Branch 2",
-        item: "Keyboard",
-        quantity: 10,
-        status: "Rejected",
-        date: "2025-08-06",
-      },
-    ];
-    setTransferHistory(data);
+    try {
+      const res = await fetch("/api/inventory/history"); // Replace with real API
+      if (!res.ok) throw new Error("Failed to fetch transfer history");
+
+      const data = await res.json();
+      setTransferHistory(data);
+      updateStatsFromHistory(data);
+    } catch (error) {
+      console.error("Error fetching history:", error);
+
+      // Mock fallback data
+      const mockData = [
+        {
+          id: 101,
+          fromBranch: "Branch 2",
+          toBranch: "Branch 1",
+          item: "Monitor",
+          quantity: 3,
+          status: "Completed",
+          date: "2025-08-05",
+        },
+        {
+          id: 102,
+          fromBranch: "Branch 1",
+          toBranch: "Branch 2",
+          item: "Keyboard",
+          quantity: 10,
+          status: "Rejected",
+          date: "2025-08-06",
+        },
+      ];
+      setTransferHistory(mockData);
+      updateStatsFromHistory(mockData);
+    }
+  };
+
+  const updateStatsFromHistory = (data) => {
     setStats((prev) => ({
       ...prev,
       completed: data.filter((t) => t.status === "Completed").length,
       rejected: data.filter((t) => t.status === "Rejected").length,
+      approved: data.filter((t) => t.status === "Approved").length,
     }));
   };
 
