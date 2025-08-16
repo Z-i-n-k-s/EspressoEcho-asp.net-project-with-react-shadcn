@@ -31,7 +31,7 @@ const OrderList = ({ filteredOrders, searchQuery, statusConfig, formatDate, Rati
             return (
               <div
                 key={order.id}
-                className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-white/20"
+                className="bg-[#d9c4a8] backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 border border-white/20"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 {/* Order Header */}

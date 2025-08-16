@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const menuItems = [
   {
@@ -56,6 +57,7 @@ const categories = ['All', 'Coffee', 'Sweet', 'Toppings'];
 const AllMenu = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
+  const navigate = useNavigate();
 
   const filteredItems = menuItems.filter((item) => {
     const matchCategory = selectedCategory === 'All' || item.category === selectedCategory;
@@ -79,7 +81,7 @@ const AllMenu = () => {
             className={`px-4 py-2 rounded-full font-semibold transition-colors duration-300
               ${
                 selectedCategory === cat
-                  ? 'bg-[#4e342e] text-[#f5f1e6] shadow-md' // dark brown active button
+                  ? 'bg-[#4e342e] text-[#f5f1e6] shadow-md'
                   : 'bg-[#f5f1e6]/80 text-[#5a3e1b] hover:bg-[#d7ccb7] hover:text-[#3e2a0a]'
               }`}
           >
@@ -104,24 +106,38 @@ const AllMenu = () => {
         {filteredItems.length === 0 && (
           <p className="text-center text-[#b3a58b] col-span-full">No items match your search or filter.</p>
         )}
-        {filteredItems.map(({ id, name, price, description, image }) => (
+        {filteredItems.map((item) => (
           <div
-            key={id}
-            className="bg-[#4e342e] border border-[#7b5e34] rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300"
+            key={item.id}
+            className="bg-[#4e342e] border border-[#7b5e34] rounded-lg overflow-hidden shadow-md transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:bg-[#a67c52]"
           >
-            <img src={image} alt={name} className="w-full h-48 object-cover" />
+            <img
+              src={item.image}
+              alt={item.name}
+              className="w-full h-48 object-cover transition-transform duration-300"
+            />
             <div className="p-4">
               <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xl font-semibold text-[#f5f1e6]">{name}</h3>
-                <span className="text-lg font-bold text-[#f5f1e6]">Tk {price.toFixed(2)}</span>
+                <h3 className="text-xl font-semibold text-[#f5f1e6]">{item.name}</h3>
+                <span className="text-lg font-bold text-[#f5f1e6]">Tk {item.price.toFixed(2)}</span>
               </div>
-              <p className="text-[#d1c4a1] mb-4 text-sm">{description}</p>
-              <button
-                className="bg-[#f5f1e6] text-[#5a3e1b] py-2 px-5 rounded-full font-semibold hover:bg-[#d7ccb7] transition-colors duration-300 w-full"
-                onClick={() => alert(`Added ${name} to cart!`)}
-              >
-                Add to Cart
-              </button>
+              <p className="text-[#d1c4a1] mb-4 text-sm">{item.description}</p>
+
+              {/* Buttons */}
+              <div className="flex gap-3">
+                <button
+                  className="flex-1 bg-[#f5f1e6] text-[#5a3e1b] py-2 px-4 font-semibold hover:bg-[#4e342e] hover:text-white duration-300"
+                  onClick={() => alert(`Added ${item.name} to cart!`)}
+                >
+                  Add to Cart
+                </button>
+                <button
+                  className="flex-1 bg-transparent border border-[#f5f1e6] text-[#f5f1e6] py-2 px-4 font-semibold hover:bg-[#4e342e] hover:text-white transition-colors duration-300"
+                  onClick={() => navigate(`/menu/${item.id}`, { state: item })}
+                >
+                  Show Details
+                </button>
+              </div>
             </div>
           </div>
         ))}

@@ -14,6 +14,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import OrderList from "./OrderList";
+import Header from "@/pages/user-without-login/componets/Header";
 
 const UserOrders = () => {
   const [selectedFilter, setSelectedFilter] = useState("all");
@@ -223,11 +224,12 @@ const UserOrders = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-amber-50/30 to-orange-50/30">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-[#e5c185]">
+      <Header></Header>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mt-20">
         {/* Hero Header */}
         <div className="text-center mb-12">
-          <div className="inline-block bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent mb-4">
+          <div className="inline-block text-[#4e342e] mb-4">
             <h1 className="text-4xl md:text-5xl font-bold">My Orders</h1>
           </div>
           <p className="text-xl text-gray-600 mb-8">
@@ -245,7 +247,7 @@ const UserOrders = () => {
                 placeholder="Search by order ID or item name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-12 py-3 bg-white/95 backdrop-blur-sm border border-gray-200 
+                className="w-full pl-12 pr-12 py-3 bg-[#d9c4a8] backdrop-blur-sm border border-gray-200 
                          rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 
                          transition-all duration-200 text-gray-700 placeholder-gray-400 shadow-lg hover:shadow-xl"
               />
@@ -281,7 +283,7 @@ const UserOrders = () => {
               onClick={() => setSelectedFilter(filter.key)}
               className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-semibold whitespace-nowrap transition-all duration-200 ${
                 selectedFilter === filter.key
-                  ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg"
+                  ? "bg-[#4e342e]  text-white shadow-lg"
                   : "bg-white/70 text-gray-700 hover:bg-white/90 hover:shadow-md"
               }`}
             >
