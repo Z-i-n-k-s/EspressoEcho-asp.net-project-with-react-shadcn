@@ -1,0 +1,36 @@
+<?php
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\BranchController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\EmployeeController;
+
+require __DIR__.'/branch_api.php';
+require __DIR__.'/employee_api.php';
+require __DIR__.'/category_api.php';
+require __DIR__.'/product_api.php';
+require __DIR__.'/toppings_api.php';
+require __DIR__.'/promotions_api.php';
+require __DIR__.'/inventory_api.php';
+require __DIR__.'/inventory_transfer_api.php';
+
+
+// -------------------------
+// Test Routes
+// -------------------------
+
+Route::get('/ping', function () {
+    return response()->json(['message' => 'pong']);
+});
+
+
+
+// -------------------------
+// Customer Routes
+// -------------------------
+Route::prefix('customers')->group(function () {
+    Route::post('register', [CustomerController::class, 'register']); // Register customer
+    // Future endpoints: index, show, update, delete
+});
+
+
+
