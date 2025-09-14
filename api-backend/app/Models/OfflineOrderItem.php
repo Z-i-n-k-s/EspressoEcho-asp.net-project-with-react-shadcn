@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class OfflineOrderItem extends Model
 {
     use HasFactory, HasUuids;
+    public $timestamps = false;
+
 
     protected $fillable = [
         'offline_order_id',

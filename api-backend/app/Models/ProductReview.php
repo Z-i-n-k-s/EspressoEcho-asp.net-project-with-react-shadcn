@@ -14,7 +14,6 @@ class ProductReview extends Model
     protected $fillable = [
         'customer_id',
         'product_id',
-        'branch_id',
         'order_id',
         'rating',
         'comment',
@@ -38,11 +37,6 @@ class ProductReview extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
-    }
-
-    public function branch(): BelongsTo
-    {
-        return $this->belongsTo(Branch::class);
     }
 
     public function order(): BelongsTo
@@ -79,11 +73,6 @@ class ProductReview extends Model
     public function scopeByProduct($query, $productId)
     {
         return $query->where('product_id', $productId);
-    }
-
-    public function scopeByBranch($query, $branchId)
-    {
-        return $query->where('branch_id', $branchId);
     }
 
     // Accessors

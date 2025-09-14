@@ -12,7 +12,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Order extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use HasFactory, HasUuids; //SoftDeletes;
+
+    // Disable automatic timestamps as we're managing them manually
+    public $timestamps = false;
 
     protected $fillable = [
         'customer_id',
@@ -108,5 +111,144 @@ class Order extends Model
     public function scopeByBranch($query, $branchId)
     {
         return $query->where('branch_id', $branchId);
+    }
+
+    public function scopeByCustomer($query, $customerId)
+    {
+        return $query->where('customer_id', $customerId);
+    }
+    // Add to Order model
+
+
+    public function scopeRecent($query, $days = 30)
+    {
+        return $query->where('placed_at', '>=', now()->subDays($days));
+    }
+
+    public function getIsActiveAttribute(): bool
+    {
+        return !in_array($this->order_status, ['cancelled', 'delivered']);
+    }
+
+    public function getCanBeCancelledAttribute(): bool
+    {
+        return !in_array($this->order_status, ['on_the_way', 'delivered', 'cancelled']);
+    }
+
+
+    // Add these methods to the Order model
+    public function canBeCancelled(): bool
+    {
+        return !in_array($this->order_status, ['on_the_way', 'delivered', 'cancelled']);
+    }
+
+    public function canUpdateStatus(string $newStatus, string $employeeId): bool
+    {
+        $employee = Employee::with('user.roles')->find($employeeId);
+        if (!$employee) return false;
+
+        $employeeRoles = $employee->user->roles->pluck('name')->toArray();
+
+        $allowedTransitions = [
+            'pending' => ['confirmed', 'cancelled'],
+            'confirmed' => ['preparing', 'cancelled'],
+            'preparing' => ['ready_for_delivery', 'cancelled'],
+            'ready_for_delivery' => ['on_the_way', 'cancelled'],
+            'on_the_way' => ['delivered'],
+            'delivered' => [],
+            'cancelled' => []
+        ];
+
+        $allowedRoles = [
+            'pending' => ['cashier'],
+            'confirmed' => ['cashier'],
+            'preparing' => ['cashier'],
+            'ready_for_delivery' => ['cashier'],
+            'on_the_way' => ['staff'],
+            'delivered' => ['staff'],
+            'cancelled' => ['cashier']
+        ];
+
+        // Check if transition is allowed
+        if (!in_array($newStatus, $allowedTransitions[$this->order_status])) {
+            return false;
+        }
+
+        // Check if employee has required role
+        if (empty(array_intersect($employeeRoles, $allowedRoles[$newStatus]))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getStatusHistoryAttribute(): array
+    {
+        $history = [];
+
+        if ($this->placed_at) $history[] = ['status' => 'placed', 'at' => $this->placed_at];
+        if ($this->confirmed_at) $history[] = ['status' => 'confirmed', 'at' => $this->confirmed_at];
+        if ($this->prepared_at) $history[] = ['status' => 'preparing', 'at' => $this->prepared_at];
+        if ($this->completed_at) $history[] = ['status' => 'delivered', 'at' => $this->completed_at];
+        if ($this->cancelled_at) $history[] = ['status' => 'cancelled', 'at' => $this->cancelled_at];
+
+        // Add delivery assignment status if exists
+        if ($this->deliveryAssignment) {
+            $history[] = ['status' => 'delivery_assigned', 'at' => $this->deliveryAssignment->assigned_at];
+            if ($this->deliveryAssignment->started_at) $history[] = ['status' => 'delivery_started', 'at' => $this->deliveryAssignment->started_at];
+            if ($this->deliveryAssignment->completed_at) $history[] = ['status' => 'delivery_completed', 'at' => $this->deliveryAssignment->completed_at];
+        }
+
+        return $history;
+    }
+    // Add these methods to the Order model
+    public function canBeCancelledByCustomer(): bool
+    {
+        // Customers can only cancel orders within 30 minutes of placement
+        // and only if order is not already being processed
+        $placedAt = \Carbon\Carbon::parse($this->placed_at);
+        $now = \Carbon\Carbon::now();
+
+        return $now->diffInMinutes($placedAt) <= 30 &&
+            in_array($this->order_status, ['pending', 'confirmed']);
+    }
+
+    public function canBeCancelledByCashier(): bool
+    {
+        // Cashiers can cancel any order that hasn't been delivered
+        return !in_array($this->order_status, ['delivered', 'cancelled']);
+    }
+
+    public function getCancellationEligibilityAttribute(): array
+    {
+        return [
+            'customer' => $this->canBeCancelledByCustomer(),
+            'cashier' => $this->canBeCancelledByCashier(),
+            'reason' => $this->getCancellationReason()
+        ];
+    }
+
+    private function getCancellationReason(): string
+    {
+        if ($this->order_status === 'delivered') {
+            return 'Order has already been delivered';
+        }
+
+        if ($this->order_status === 'cancelled') {
+            return 'Order is already cancelled';
+        }
+
+        if ($this->order_status === 'on_the_way') {
+            return 'Order is already on the way for delivery';
+        }
+
+        $placedAt = \Carbon\Carbon::parse($this->placed_at);
+        $now = \Carbon\Carbon::now();
+
+        if ($now->diffInMinutes($placedAt) > 30 && in_array($this->order_status, ['pending', 'confirmed'])) {
+            return 'Orders can only be cancelled within 30 minutes of placement';
+        }
+
+        return 'Order can be cancelled';
     }
 }

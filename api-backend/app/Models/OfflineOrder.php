@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 class OfflineOrder extends Model
 {
     use HasFactory, HasUuids;
+     public $timestamps = false; 
 
     protected $fillable = [
         'branch_id',

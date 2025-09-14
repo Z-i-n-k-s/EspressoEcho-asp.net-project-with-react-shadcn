@@ -428,6 +428,19 @@ CREATE TABLE product_reviews (
     INDEX idx_product_reviews_visible (is_visible)
 ) ENGINE=InnoDB;
 
+-- 1. Drop foreign key for branch_id (must do this before dropping the column)
+ALTER TABLE product_reviews
+DROP FOREIGN KEY product_reviews_ibfk_3;
+
+-- 2. Drop the branch_id column
+ALTER TABLE product_reviews
+DROP COLUMN branch_id;
+
+-- 3. Modify order_id to allow NULL (optional field)
+ALTER TABLE product_reviews
+MODIFY order_id CHAR(36) NULL;
+
+
 -- Inventory adjustments table for tracking manual adjustments, transfers, and losses
 CREATE TABLE inventory_adjustments (
     id CHAR(36) PRIMARY KEY,
@@ -458,13 +471,25 @@ CREATE TABLE inventory_adjustments (
     INDEX idx_inventory_adjustments_created_at (created_at)
 ) ENGINE=InnoDB;
 
-ALTER TABLE promotions 
-ADD COLUMN deleted_at TIMESTAMP NULL AFTER updated_at;
 
 ALTER TABLE inventory_adjustments 
 ADD COLUMN last_updated_by VARCHAR(36) NULL AFTER reason,
 ADD CONSTRAINT fk_inventory_adjustments_employee 
 FOREIGN KEY (last_updated_by) REFERENCES employees(id);
+
+ALTER TABLE inventory_adjustments
+    DROP FOREIGN KEY inventory_adjustments_ibfk_3,
+    DROP COLUMN reference_order_id,
+    ADD COLUMN reference_order_type ENUM('online','offline') NULL AFTER reason,
+    ADD COLUMN reference_order_id CHAR(36) NULL AFTER reference_order_type;
+
+
+ALTER TABLE branch_announcements
+ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at;
+
+
+ALTER TABLE promotions 
+ADD COLUMN deleted_at TIMESTAMP NULL AFTER updated_at;
 
 -- Enable Event Scheduler
 SET GLOBAL event_scheduler = ON;

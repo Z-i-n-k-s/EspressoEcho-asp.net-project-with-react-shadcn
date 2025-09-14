@@ -12,6 +12,12 @@ require __DIR__.'/toppings_api.php';
 require __DIR__.'/promotions_api.php';
 require __DIR__.'/inventory_api.php';
 require __DIR__.'/inventory_transfer_api.php';
+require __DIR__.'/customer_order_api.php';
+require __DIR__.'/offline_order_api.php';
+require __DIR__.'/branch_announcement_api.php';
+require __DIR__.'/feedback_api.php';
+require __DIR__.'/feedback_reply_api.php';
+require __DIR__.'/product_review_api.php';
 
 
 // -------------------------

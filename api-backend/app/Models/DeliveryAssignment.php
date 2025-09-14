@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class DeliveryAssignment extends Model
 {
     use HasFactory, HasUuids;
+     public $timestamps = false; 
 
     protected $fillable = [
         'order_id',
