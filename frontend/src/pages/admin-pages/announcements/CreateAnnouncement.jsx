@@ -1,25 +1,52 @@
+import branchAnnouncementApi from "@/api/Branch_announcement_api";
+import branchApi from "@/api/Branch_api";
 import { PlusCircle } from "lucide-react";
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 export default function CreateAnnouncement({
-  branch,
-  setBranch,
-  newAnnouncement,
-  setNewAnnouncement,
   setActiveAnnouncements,
   activeAnnouncements,
 }) {
-  const handleCreate = () => {
-    if (!newAnnouncement.trim()) return;
-    const newItem = {
-      id: Date.now(),
-      branch: branch === "all" ? "All" : branch,
-      message: newAnnouncement,
-      date: new Date().toISOString().split("T")[0],
+  const [branches, setBranches] = useState([]);
+  const [branch, setBranch] = useState("all");
+  const [newAnnouncement, setNewAnnouncement] = useState("");
+
+  // Fetch branches from backend
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const res = await branchApi.getAllBranches();
+        setBranches(res.data || []); // assuming { data: [...] }
+      } catch (error) {
+        console.error("Failed to fetch branches", error);
+      }
     };
-    setActiveAnnouncements([newItem, ...activeAnnouncements]);
-    setNewAnnouncement("");
+    fetchBranches();
+  }, []);
+
+  // Handle create announcement
+  const handleCreate = async () => {
+    if (!newAnnouncement.trim()) return;
+
+    try {
+      const payload = {
+        branch_id: branch === "all" ? null : branch, // null = all branches
+        message: newAnnouncement,
+        type: "info", // you can make this dynamic later
+        created_by: "YOUR_USER_ID", // TODO: replace with logged-in user
+        is_active: true,
+      };
+
+      const res = await branchAnnouncementApi.create(payload);
+
+      // Prepend newly created announcement
+      setActiveAnnouncements([res.data, ...activeAnnouncements]);
+      setNewAnnouncement("");
+    } catch (error) {
+      console.error("Failed to create announcement", error);
+    }
   };
+
   return (
     <div className="bg-[#fffaf5] p-6 rounded-2xl shadow-lg border border-[#e7dcd3]">
       <h2 className="text-lg font-semibold text-[#5c4033] mb-4 flex items-center gap-2">
@@ -32,10 +59,13 @@ export default function CreateAnnouncement({
           onChange={(e) => setBranch(e.target.value)}
         >
           <option value="all">All Branches</option>
-          <option value="Downtown">Downtown</option>
-          <option value="Uptown">Uptown</option>
-          <option value="Riverside">Riverside</option>
+          {branches.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
+            </option>
+          ))}
         </select>
+
         <input
           type="text"
           placeholder="Enter announcement message..."
@@ -43,6 +73,7 @@ export default function CreateAnnouncement({
           value={newAnnouncement}
           onChange={(e) => setNewAnnouncement(e.target.value)}
         />
+
         <button
           onClick={handleCreate}
           className="bg-[#6b4226] text-white px-4 py-2 rounded-lg hover:bg-[#5c3620] transition"

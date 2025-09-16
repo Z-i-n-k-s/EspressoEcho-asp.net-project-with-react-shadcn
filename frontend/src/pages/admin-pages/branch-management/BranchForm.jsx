@@ -1,5 +1,8 @@
-import { Edit, Plus } from "lucide-react";
-import React from "react";
+import branchApi from "@/api/Branch_api";
+import { Edit, Plus, UserPlus } from "lucide-react";
+import React, { useState } from "react";
+import ManagerDialog from "./ManagerDialog";
+
 
 export default function BranchForm({
   formData,
@@ -9,122 +12,107 @@ export default function BranchForm({
   setEditingId,
   branches,
 }) {
-  //add or update button handler
-  const handleSubmit = (e) => {
+  const [showManagerDialog, setShowManagerDialog] = useState(false);
+  const [currentManager, setCurrentManager] = useState(null);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const payload = {
+      ...formData,
+      manager_id: currentManager ? currentManager.id : null, // allow null
+    };
+
     if (editingId) {
-      setBranches(
-        branches.map((b) => (b.id === editingId ? { ...b, ...formData } : b))
-      );
+      const updated = await branchApi.updateBranch(editingId, payload);
+      setBranches(branches.map((b) => (b.id === editingId ? updated : b)));
       setEditingId(null);
     } else {
-      setBranches([...branches, { id: Date.now(), ...formData }]);
+      console.log("Creating branch with payload:", payload);
+      const created = await branchApi.createBranch(payload);
+
+      setBranches([...branches, created]);
     }
+
+    // Reset
     setFormData({
       name: "",
       address: "",
-      contact: "",
-      email: "",
-      opening: "",
-      closing: "",
-      status: "Active",
-      manager: "",
+      contact_phone: "",
+      manager_id: "",
+      status: "open",
     });
+    setCurrentManager(null);
   };
+
   return (
     <form
       onSubmit={handleSubmit}
       className="bg-[#fff8f1] p-6 rounded-2xl shadow-lg border border-[#e7dcd3] space-y-4"
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Branch Name */}
         <input
           type="text"
           placeholder="Branch Name"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          className="p-2 border border-[#e7dcd3] rounded-lg focus:outline-none focus:border-[#6b4226] focus:ring-2 focus:ring-[#d4a373]"
           required
+          className="p-2 border rounded-lg"
         />
+
+        {/* Address */}
         <input
           type="text"
           placeholder="Address"
           value={formData.address}
-          onChange={(e) =>
-            setFormData({ ...formData, address: e.target.value })
-          }
-          className="p-2 border border-[#e7dcd3] rounded-lg focus:outline-none focus:border-[#6b4226] focus:ring-2 focus:ring-[#d4a373]"
+          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
           required
-        />
-        <input
-          type="number"
-          placeholder="Contact"
-          value={formData.contact}
-          onChange={(e) =>
-            setFormData({ ...formData, contact: e.target.value })
-          }
-          className="p-2 border border-[#e7dcd3] rounded-lg focus:outline-none focus:border-[#6b4226] focus:ring-2 focus:ring-[#d4a373]"
-          required
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="p-2 border border-[#e7dcd3] rounded-lg focus:outline-none focus:border-[#6b4226] focus:ring-2 focus:ring-[#d4a373]"
-          required
+          className="p-2 border rounded-lg"
         />
 
-        <div className="flex flex-col">
-          <label className="text-sm font-medium text-gray-700 mb-1 pl-2">
-            Opening Hour
-          </label>
-          <input
-            type="time"
-            placeholder="Opening Hour"
-            value={formData.opening}
-            onChange={(e) =>
-              setFormData({ ...formData, opening: e.target.value })
-            }
-            className="p-2 border border-[#e7dcd3] rounded-lg focus:outline-none focus:border-[#6b4226] focus:ring-2 focus:ring-[#d4a373]"
-            required
-          />
+        {/* Phone */}
+        <input
+          type="text"
+          placeholder="Contact Phone"
+          value={formData.contact_phone}
+          onChange={(e) =>
+            setFormData({ ...formData, contact_phone: e.target.value })
+          }
+          required
+          className="p-2 border rounded-lg"
+        />
+
+        {/* Manager (optional) */}
+        <div className="flex items-center gap-3">
+          {currentManager ? (
+            <span className="px-3 py-2 rounded-lg bg-green-100 text-green-700">
+              {currentManager.name}
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowManagerDialog(true)}
+              className="flex items-center gap-2 px-3 py-2 border rounded-lg bg-white hover:bg-gray-100"
+            >
+              <UserPlus size={16} /> Add Manager (Optional)
+            </button>
+          )}
         </div>
-        <div className="flex flex-col">
-          <label className="text-sm font-medium text-gray-700 mb-1 pl-2">
-            Closing Hour
-          </label>
-          <input
-            type="time"
-            placeholder="Closing Hour"
-            value={formData.closing}
-            onChange={(e) =>
-              setFormData({ ...formData, closing: e.target.value })
-            }
-            className="p-2 border border-[#e7dcd3] rounded-lg focus:outline-none focus:border-[#6b4226] focus:ring-2 focus:ring-[#d4a373]"
-            required
-          />
-        </div>
+
+        {/* Status */}
         <select
           value={formData.status}
           onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-          className="p-2 border border-[#e7dcd3] rounded-lg focus:outline-none focus:border-[#6b4226] focus:ring-2 focus:ring-[#d4a373]"
+          className="p-2 border rounded-lg"
           required
         >
-          <option>Active</option>
-          <option>Inactive</option>
-          <option>Closed</option>
+          <option value="open">Open</option>
+          <option value="closed">Closed</option>
+          <option value="temporarily_closed">Temporarily Closed</option>
         </select>
-        <input
-          type="text"
-          placeholder="Manager Name"
-          value={formData.manager}
-          onChange={(e) =>
-            setFormData({ ...formData, manager: e.target.value })
-          }
-          className="p-2 border border-[#e7dcd3] rounded-lg focus:outline-none focus:border-[#6b4226] focus:ring-2 focus:ring-[#d4a373]"
-          required
-        />
       </div>
+
       <button
         type="submit"
         className="bg-[#6b4226] hover:bg-[#5c3620] text-white px-4 py-2 rounded-lg flex items-center gap-2"
@@ -132,6 +120,25 @@ export default function BranchForm({
         {editingId ? <Edit size={16} /> : <Plus size={16} />}
         {editingId ? "Update Branch" : "Add Branch"}
       </button>
+
+      {/* Manager Modal */}
+      {showManagerDialog && (
+        <ManagerDialog
+          current={currentManager || {}}
+          setCurrent={setCurrentManager}
+          setShowDialog={setShowManagerDialog}
+          branchName={formData.name}
+          coffee={{
+            panel: "bg-white",
+            border: "border-gray-200",
+            textDark: "text-gray-800",
+          }}
+          onSave={(newManager) => {
+            setCurrentManager(newManager);
+            setFormData({ ...formData, manager_id: newManager.id });
+          }}
+        />
+      )}
     </form>
   );
 }

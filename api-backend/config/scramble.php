@@ -3,6 +3,7 @@
 use Dedoc\Scramble\Http\Middleware\RestrictedDocsAccess;
 
 return [
+
     /*
      * Your API path. By default, all routes starting with this path will be added to the docs.
      * If you need to change this behavior, you can add your custom routes resolver using `Scramble::routes()`.
@@ -20,6 +21,12 @@ return [
      */
     'export_path' => 'api.json',
 
+    /*
+     * The path where Scramble will serve your API documentation UI.
+     * Default is "docs/api", but you can change it to "doc/api" or any other route.
+     */
+    'docs_path' => 'doc/api',
+
     'info' => [
         /*
          * API version.
@@ -27,7 +34,7 @@ return [
         'version' => env('API_VERSION', '0.0.1'),
 
         /*
-         * Description rendered on the home page of the API documentation (`/docs/api`).
+         * Description rendered on the home page of the API documentation.
          */
         'description' => '',
     ],
@@ -67,45 +74,40 @@ return [
         'try_it_credentials_policy' => 'include',
 
         /*
-         * There are three layouts for Elements:
-         * - sidebar - (Elements default) Three-column design with a sidebar that can be resized.
-         * - responsive - Like sidebar, except at small screen sizes it collapses the sidebar into a drawer that can be toggled open.
-         * - stacked - Everything in a single column, making integrations with existing websites that have their own sidebar or other columns already.
+         * Layout options:
+         * - sidebar (default) – Three-column design with resizable sidebar.
+         * - responsive – Sidebar collapses on small screens.
+         * - stacked – Single-column layout.
          */
         'layout' => 'responsive',
     ],
 
     /*
      * The list of servers of the API. By default, when `null`, server URL will be created from
-     * `scramble.api_path` and `scramble.api_domain` config variables. When providing an array, you
-     * will need to specify the local server URL manually (if needed).
-     *
-     * Example of non-default config (final URLs are generated using Laravel `url` helper):
-     *
-     * ```php
-     * 'servers' => [
-     *     'Live' => 'api',
-     *     'Prod' => 'https://scramble.dedoc.co/api',
-     * ],
-     * ```
+     * `scramble.api_path` and `scramble.api_domain` config variables.
      */
     'servers' => null,
 
-    /**
+    /*
      * Determines how Scramble stores the descriptions of enum cases.
      * Available options:
-     * - 'description' – Case descriptions are stored as the enum schema's description using table formatting.
-     * - 'extension' – Case descriptions are stored in the `x-enumDescriptions` enum schema extension.
-     *
-     *    @see https://redocly.com/docs-legacy/api-reference-docs/specification-extensions/x-enum-descriptions
-     * - false - Case descriptions are ignored.
+     * - 'description'
+     * - 'extension'
+     * - false
      */
     'enum_cases_description_strategy' => 'description',
 
+    /*
+     * Middleware stack applied to Scramble docs routes.
+     * By default, includes "web" and "RestrictedDocsAccess".
+     */
     'middleware' => [
         'web',
         RestrictedDocsAccess::class,
     ],
 
+    /*
+     * You may register custom OpenAPI extensions here.
+     */
     'extensions' => [],
 ];
