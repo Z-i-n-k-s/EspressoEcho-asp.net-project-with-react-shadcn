@@ -1,8 +1,8 @@
 import branchApi from "@/api/Branch_api";
+import employeeApi from "@/api/Employee_api";
 import { Edit, Plus, UserPlus } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ManagerDialog from "./ManagerDialog";
-
 
 export default function BranchForm({
   formData,
@@ -14,35 +14,95 @@ export default function BranchForm({
 }) {
   const [showManagerDialog, setShowManagerDialog] = useState(false);
   const [currentManager, setCurrentManager] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  // Prefill form and manager when editing
+  useEffect(() => {
+    if (editingId) {
+      const branch = branches.find((b) => b.id === editingId);
+      if (!branch) return;
+
+      // Prefill formData
+      setFormData({
+        name: branch.name || "",
+        address: branch.address || "",
+        contact_phone: branch.contact_phone || "",
+        status: branch.status || "open",
+        manager_id: branch.manager?.user_id || null,
+      });
+
+      // Prefill currentManager for UI
+      if (branch.manager) {
+        setCurrentManager({
+          employeeId: branch.manager.id,
+          userId: branch.manager.user_id,
+          fullName: branch.manager.full_name,
+          email: branch.manager.email,
+        });
+      } else {
+        setCurrentManager(null);
+      }
+    }
+  }, [editingId, branches, setFormData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    const payload = {
-      ...formData,
-      manager_id: currentManager ? currentManager.id : null, // allow null
-    };
+    try {
+      let savedBranch;
 
-    if (editingId) {
-      const updated = await branchApi.updateBranch(editingId, payload);
-      setBranches(branches.map((b) => (b.id === editingId ? updated : b)));
-      setEditingId(null);
-    } else {
-      console.log("Creating branch with payload:", payload);
-      const created = await branchApi.createBranch(payload);
+      // Prepare payload: use currentManager if changed, else keep existing
+      const payload = {
+        ...formData,
+        manager_id: currentManager?.userId ?? formData.manager_id ?? undefined,
+      };
 
-      setBranches([...branches, created]);
+      if (editingId) {
+        // Update existing branch
+        savedBranch = await branchApi.updateBranch(editingId, payload);
+        setBranches(
+          branches.map((b) => (b.id === editingId ? savedBranch : b))
+        );
+        setEditingId(null);
+        setFormData({
+          name: "",
+          address: "",
+          contact_phone: "",
+          status: "open",
+          manager_id: "",
+        });
+        setCurrentManager(null);
+      } else {
+        // Create new branch
+        savedBranch = await branchApi.createBranch(payload);
+        setBranches([...branches, savedBranch]);
+
+        // Update employee's branch if manager added
+        if (currentManager) {
+          await employeeApi.updateEmployee(currentManager.employeeId, {
+            branch_id: savedBranch.id,
+          });
+        }
+      }
+
+      // Reset form only after creating new branch
+      if (!editingId) {
+        setFormData({
+          name: "",
+          address: "",
+          contact_phone: "",
+          status: "open",
+          manager_id: "",
+        });
+        setCurrentManager(null);
+      }
+    } catch (err) {
+      console.error("Failed to save branch:", err);
+      alert("Failed to save branch");
+    } finally {
+      setLoading(false);
     }
-
-    // Reset
-    setFormData({
-      name: "",
-      address: "",
-      contact_phone: "",
-      manager_id: "",
-      status: "open",
-    });
-    setCurrentManager(null);
   };
 
   return (
@@ -66,7 +126,9 @@ export default function BranchForm({
           type="text"
           placeholder="Address"
           value={formData.address}
-          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+          onChange={(e) =>
+            setFormData({ ...formData, address: e.target.value })
+          }
           required
           className="p-2 border rounded-lg"
         />
@@ -83,21 +145,27 @@ export default function BranchForm({
           className="p-2 border rounded-lg"
         />
 
-        {/* Manager (optional) */}
+        {/* Manager */}
         <div className="flex items-center gap-3">
-          {currentManager ? (
+          {currentManager && (
             <span className="px-3 py-2 rounded-lg bg-green-100 text-green-700">
-              {currentManager.name}
+              Manager: {currentManager.fullName}
             </span>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setShowManagerDialog(true)}
-              className="flex items-center gap-2 px-3 py-2 border rounded-lg bg-white hover:bg-gray-100"
-            >
-              <UserPlus size={16} /> Add Manager (Optional)
-            </button>
           )}
+          <button
+            type="button"
+            onClick={() => setShowManagerDialog(true)}
+            disabled={!formData.name.trim()} // disable if branch name is empty
+            className={`flex items-center gap-2 px-3 py-2 border rounded-lg text-white 
+      ${
+        formData.name.trim()
+          ? "bg-[#6b4226] hover:bg-[#5c3620]"
+          : "bg-gray-300 cursor-not-allowed"
+      }`}
+          >
+            <UserPlus size={16} />{" "}
+            {currentManager ? "Change Manager" : "Add Manager"} (Optional)
+          </button>
         </div>
 
         {/* Status */}
@@ -113,19 +181,34 @@ export default function BranchForm({
         </select>
       </div>
 
+      {/* Submit Button */}
       <button
         type="submit"
+        disabled={loading}
         className="bg-[#6b4226] hover:bg-[#5c3620] text-white px-4 py-2 rounded-lg flex items-center gap-2"
       >
-        {editingId ? <Edit size={16} /> : <Plus size={16} />}
-        {editingId ? "Update Branch" : "Add Branch"}
+        {loading ? (
+          <>
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+            Saving...
+          </>
+        ) : editingId ? (
+          <>
+            <Edit size={16} />
+            Update Branch
+          </>
+        ) : (
+          <>
+            <Plus size={16} />
+            Add Branch
+          </>
+        )}
       </button>
 
       {/* Manager Modal */}
       {showManagerDialog && (
         <ManagerDialog
-          current={currentManager || {}}
-          setCurrent={setCurrentManager}
+          initial={currentManager}
           setShowDialog={setShowManagerDialog}
           branchName={formData.name}
           coffee={{
@@ -135,7 +218,7 @@ export default function BranchForm({
           }}
           onSave={(newManager) => {
             setCurrentManager(newManager);
-            setFormData({ ...formData, manager_id: newManager.id });
+            setFormData({ ...formData, manager_id: newManager.userId });
           }}
         />
       )}

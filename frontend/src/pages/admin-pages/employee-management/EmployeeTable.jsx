@@ -1,29 +1,33 @@
-import { Building2, Edit3, Shield, Trash2 } from "lucide-react";
 import React, { useMemo } from "react";
+import { Building2, Edit3, Shield, Trash2 } from "lucide-react";
+import employeeApi from "@/api/Employee_api";
 
 export default function EmployeeTable({
   employees,
   search,
   filterBranch,
-  filterStatus,
   filterRole,
   loading,
-  branchName,
   roleCatalog,
   coffee,
   setCurrent,
   setIsAddMode,
   setShowDialog,
-  setEmployees
+  setEmployees,
 }) {
+  const roleLabel = (id) => roleCatalog.find((r) => r.id === id)?.label || id;
+const ADMIN_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
 
-const roleLabel = (id) => roleCatalog.find((r) => r.id === id)?.label || id;
-
-    const remove = (id) => {
+  const remove =async(id) => {
     if (!confirm("Delete this employee?")) return;
-    setEmployees((prev) => prev.filter((e) => e.id !== id));
+     try {
+      await employeeApi.deleteEmployee(id, ADMIN_ID);
+      setEmployees((prev) => prev.filter((e) => e.id !== id));
+    } catch (err) {
+      console.error("Failed to delete employee:", err);
+      alert("Failed to delete employee. Please try again.");
+    }
   };
-
 
   const openEdit = (emp) => {
     setCurrent({ ...emp });
@@ -31,29 +35,25 @@ const roleLabel = (id) => roleCatalog.find((r) => r.id === id)?.label || id;
     setShowDialog(true);
   };
 
-
   const filtered = useMemo(() => {
-      return employees.filter((e) => {
-        const q = search.trim().toLowerCase();
-        const matchesText =
-          !q ||
-          e.name.toLowerCase().includes(q) ||
-          e.email.toLowerCase().includes(q) ||
-          e.phone.toLowerCase().includes(q) ||
-          branchName(e.branchId).toLowerCase().includes(q);
-  
-        const matchesBranch =
-          filterBranch === "All" || e.branchId === Number(filterBranch);
-  
-        const matchesStatus =
-          filterStatus === "All" || e.status === filterStatus;
-  
-        const matchesRole =
-          filterRole === "All" || e.roles.includes(filterRole);
-  
-        return matchesText && matchesBranch && matchesStatus && matchesRole;
-      });
-    }, [employees, search, filterBranch, filterStatus, filterRole]);
+    return employees.filter((e) => {
+      const q = search.trim().toLowerCase();
+
+      const matchesText =
+        !q ||
+        e.name.toLowerCase().includes(q) ||
+        e.email.toLowerCase().includes(q) ||
+        e.branchName.toLowerCase().includes(q);
+
+      const matchesBranch =
+        filterBranch === "All" || e.branchId === filterBranch;
+
+      const matchesRole =
+        filterRole === "All" || e.roles.includes(filterRole);
+
+      return matchesText && matchesBranch && matchesRole;
+    });
+  }, [employees, search, filterBranch, filterRole]);
 
   return (
     <section
@@ -66,19 +66,16 @@ const roleLabel = (id) => roleCatalog.find((r) => r.id === id)?.label || id;
       </h2>
 
       {loading ? (
-        <p className="italic text-center text-[#5c4033]">
-          Loading employees...
-        </p>
+        <p className="italic text-center text-[#5c4033]">Loading employees...</p>
       ) : (
         <div className="overflow-x-auto rounded-2xl shadow">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#6b4226] text-white">
                 <th className="p-3">Name</th>
-                <th className="p-3">Contact</th>
+                <th className="p-3">Email</th>
                 <th className="p-3">Branch</th>
-                <th className="p-3">Roles</th>
-                <th className="p-3">Status</th>
+                <th className="p-3">Role</th>
                 <th className="p-3">Hired</th>
                 <th className="p-3 text-center">Actions</th>
               </tr>
@@ -86,10 +83,7 @@ const roleLabel = (id) => roleCatalog.find((r) => r.id === id)?.label || id;
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className="p-4 text-center text-[#5c4033] italic"
-                  >
+                  <td colSpan={6} className="p-4 text-center text-[#5c4033] italic">
                     No employees found
                   </td>
                 </tr>
@@ -97,59 +91,20 @@ const roleLabel = (id) => roleCatalog.find((r) => r.id === id)?.label || id;
                 filtered.map((e, idx) => (
                   <tr
                     key={e.id}
-                    className={`border-b ${
-                      idx % 2 === 0 ? "bg-[#fcf9f6]" : "bg-white"
-                    }`}
+                    className={`border-b ${idx % 2 === 0 ? "bg-[#fcf9f6]" : "bg-white"}`}
                   >
-                    <td className="p-3 font-medium flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-[#f0e4d6] flex items-center justify-center text-sm font-bold text-[#5c4033]">
-                        {e.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .slice(0, 2)}
-                      </div>
-                      <div>
-                        <div className="text-[#5c4033] font-semibold">
-                          {e.name}
-                        </div>
-                        <div className="text-xs text-gray-500">{e.email}</div>
-                      </div>
-                    </td>
+                    <td className="p-3 font-medium">{e.name}</td>
+                    <td className="p-3">{e.email}</td>
+                    <td className="p-3">{e.branchName}</td>
                     <td className="p-3">
-                      <div className="text-sm">{e.phone}</div>
-                    </td>
-                    <td className="p-3">{branchName(e.branchId)}</td>
-                    <td className="p-3">
-                      <div className="flex flex-wrap gap-2">
-                        {e.roles.length === 0 ? (
-                          <span className="text-xs text-gray-500">
-                            No roles
-                          </span>
-                        ) : (
-                          e.roles.map((r) => (
-                            <span
-                              key={r}
-                              className={`px-2 py-1 rounded-full text-xs ${coffee.chip} border ${coffee.border} flex items-center gap-1`}
-                            >
-                              <Shield size={12} /> {roleLabel(r)}
-                            </span>
-                          ))
-                        )}
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          e.status === "Active"
-                            ? "bg-green-100 text-green-700"
-                            : e.status === "On Leave"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-gray-200 text-gray-700"
-                        }`}
-                      >
-                        {e.status}
-                      </span>
+                      {e.roles.map((r) => (
+                        <span
+                          key={r}
+                          className={`px-2 py-1 rounded-full text-xs ${coffee.chip} border ${coffee.border} flex items-center gap-1`}
+                        >
+                          <Shield size={12} /> {roleLabel(r)}
+                        </span>
+                      ))}
                     </td>
                     <td className="p-3">{e.hireDate}</td>
                     <td className="p-3 text-center">

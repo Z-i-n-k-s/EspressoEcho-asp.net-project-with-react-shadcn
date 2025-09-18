@@ -1,4 +1,4 @@
-import { ClipboardList, Search, UserPlus } from "lucide-react";
+import { Search, UserPlus } from "lucide-react";
 import React from "react";
 
 export default function EmployeeFilters({
@@ -8,34 +8,29 @@ export default function EmployeeFilters({
   setFilterBranch,
   filterRole,
   setFilterRole,
-  filterStatus,
-  setFilterStatus,
   setCurrent,
   setIsAddMode,
   setShowDialog,
-  showAttendancePanel,
-  setShowAttendancePanel,
   branches,
   roleCatalog,
   coffee,
 }) {
 
-    const openAdd = () => {
-        setCurrent({
-          id: Date.now(),
-          name: "",
-          email: "",
-          phone: "",
-          branchId: branches[0]?.id || 1,
-          roles: [],
-          status: "Active",
-          hireDate: new Date().toISOString().slice(0, 10),
-          avatarUrl: "",
-        });
-        setIsAddMode(true);
-        setShowDialog(true);
-      };
-      
+  const openAdd = () => {
+    setCurrent({
+      id: Date.now(),
+      name: "",
+      email: "",
+      password: "",
+      branchId: branches[0]?.id || null,
+      roles: [],
+      hireDate: new Date().toISOString().slice(0, 10),
+      created_by: "TEMP_USER_ID", 
+    });
+    setIsAddMode(true);
+    setShowDialog(true);
+  };
+
   return (
     <section
       className={`${coffee.panel} p-4 rounded-2xl shadow-md border ${coffee.border} mb-6`}
@@ -46,7 +41,7 @@ export default function EmployeeFilters({
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search name, email, phone, branch..."
+            placeholder="Search name, email, branch..."
             className="w-full outline-none"
           />
         </div>
@@ -79,32 +74,11 @@ export default function EmployeeFilters({
           ))}
         </select>
 
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="px-3 py-2 rounded-lg border bg-white"
-          title="Filter by status"
-        >
-          {["All", "Active", "On Leave", "Inactive"].map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-
         <button
           onClick={openAdd}
           className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#ffd7a8] hover:bg-[#ffc98a] text-[#5c4033] font-semibold shadow"
         >
           <UserPlus size={18} /> Add Employee
-        </button>
-
-        <button
-          onClick={() => setShowAttendancePanel((v) => !v)}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#c1e1c1] hover:bg-[#a9d6a9] text-[#1f4d1f] font-semibold shadow"
-        >
-          <ClipboardList size={18} />{" "}
-          {showAttendancePanel ? "Hide" : "Attendance / Leave"}
         </button>
       </div>
     </section>

@@ -1,55 +1,44 @@
 import React, { useState, useEffect } from "react";
-import { Archive, PlusCircle, CheckCircle2, Megaphone } from "lucide-react";
+import { Megaphone } from "lucide-react";
 import CreateAnnouncement from "./CreateAnnouncement";
 import ActiveAnnouncements from "./ActiveAnnouncements";
 import ArchivedAnnouncements from "./ArchivedAnnouncements";
+import branchAnnouncementApi from "@/api/Branch_announcement_api";
 
 export default function Announcements() {
-  const [branch, setBranch] = useState("all");
-  const [newAnnouncement, setNewAnnouncement] = useState("");
   const [activeAnnouncements, setActiveAnnouncements] = useState([]);
   const [archivedAnnouncements, setArchivedAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    // Mock data
-    const mockActive = [
-      {
-        id: 1,
-        branch: "All",
-        message: "Holiday offer starts tomorrow!",
-        date: "2025-08-10",
-      },
-      {
-        id: 2,
-        branch: "Downtown",
-        message: "Machine maintenance at 2 PM",
-        date: "2025-08-12",
-      },
-    ];
-
-    const mockArchived = [
-      {
-        id: 3,
-        branch: "Uptown",
-        message: "New seasonal menu launched",
-        date: "2025-07-01",
-      },
-    ];
-
-    // Initially set mock data
-    setActiveAnnouncements(mockActive);
-    setArchivedAnnouncements(mockArchived);
-
-    // Example backend API call
     const fetchAnnouncements = async () => {
       try {
-        const data = await new Promise((resolve) => setTimeout(resolve, 800)); //simulate api delay show loading
+        const res = await branchAnnouncementApi.getAll();
 
-        // Assuming backend returns { active: [], archived: [] }
-        if (data.active) setActiveAnnouncements(data.active);
-        if (data.archived) setArchivedAnnouncements(data.archived);
+        // API may return { data: [...] } or just [...]
+        const all = res.data || res;
+
+        // Normalize data: ensure message, branch, and date are strings or safe values
+        const normalized = all.map((a) => ({
+          ...a,
+          message:
+            typeof a.message === "string"
+              ? a.message
+              : a.message?.text ?? "No message",
+          branch:
+            typeof a.branch === "string"
+              ? a.branch
+              : a.branch?.name ?? "Unknown branch",
+          date: a.date ?? "No date",
+        }));
+
+        const active = normalized.filter((a) => a.is_active);
+        const archived = normalized.filter((a) => !a.is_active);
+
+        setActiveAnnouncements(active);
+        setArchivedAnnouncements(archived);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to fetch announcements", err);
       } finally {
         setLoading(false);
       }
@@ -61,7 +50,7 @@ export default function Announcements() {
   return (
     <div className="space-y-6 min-h-screen bg-gradient-to-b from-[#f5e6d3] to-[#6b4226] p-6 font-[Inter] rounded-lg shadow-inner">
       <h1 className="text-4xl font-extrabold text-[#5c4033] flex items-center gap-2">
-        📢 Announcements
+        <Megaphone className="text-orange-500" /> Announcements
       </h1>
 
       {loading ? (
@@ -73,17 +62,13 @@ export default function Announcements() {
         </div>
       ) : (
         <>
-          {/* Create Announcement= handles creating announcements form*/}
+          {/* Create new announcement */}
           <CreateAnnouncement
-            branch={branch}
-            setBranch={setBranch}
-            newAnnouncement={newAnnouncement}
-            setNewAnnouncement={setNewAnnouncement}
             setActiveAnnouncements={setActiveAnnouncements}
             activeAnnouncements={activeAnnouncements}
           />
 
-          {/* Active Announcements = seeing the new created active announcements */}
+          {/* Active Announcements */}
           <ActiveAnnouncements
             activeAnnouncements={activeAnnouncements}
             setActiveAnnouncements={setActiveAnnouncements}
@@ -91,10 +76,8 @@ export default function Announcements() {
             archivedAnnouncements={archivedAnnouncements}
           />
 
-          {/* Archived Announcements = deleted announcements from active can be seen here */}
-          <ArchivedAnnouncements
-            archivedAnnouncements={archivedAnnouncements}
-          />
+          {/* Archived Announcements */}
+          <ArchivedAnnouncements archivedAnnouncements={archivedAnnouncements} />
         </>
       )}
     </div>

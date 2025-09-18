@@ -39,8 +39,10 @@ const employeeApi = {
   },
 
   // Delete employee
-  async deleteEmployee(id) {
-    const res = await apiClient.client.delete(`/api/employees/${id}`);
+  async deleteEmployee(id, adminId) {
+    const res = await apiClient.client.delete(`/api/employees/${id}`,{
+      data: { admin_user_id: adminId }, 
+    });
     return res.data;
   },
 };

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { PlusCircle } from "lucide-react";
 import PromotionForm from "./PromotionForm";
 import PromotionTable from "./PromotionTable";
+import promotionsApi from "@/api/Promotions_api";
+
 
 export default function AdminPromotions() {
   const [promotions, setPromotions] = useState([]);
-  const [branchFilter, setBranchFilter] = useState("all");
   const [newPromo, setNewPromo] = useState({
     code: "",
     discountType: "percentage",
@@ -14,6 +14,10 @@ export default function AdminPromotions() {
     startDate: "",
     endDate: "",
     description: "",
+    maxUses: "",
+    ruleType: "",
+    ruleCriteria: "",
+    isActive: true,
   });
   const [loading, setLoading] = useState(false);
 
@@ -21,56 +25,17 @@ export default function AdminPromotions() {
     fetchPromotions();
   }, []);
 
-  useEffect(() => {
-    fetchPromotions();
-  }, []);
-
   const fetchPromotions = async () => {
     setLoading(true);
-
-    // Mock data
-    const mockData = [
-      {
-        code: "COFFEE10",
-        type: "percentage",
-        value: 10,
-        branch: "Downtown",
-        start: "2025-08-01",
-        end: "2025-08-31",
-        description: "10% off all coffee drinks",
-        uses: 42,
-      },
-      {
-        code: "BEANS5",
-        type: "fixed",
-        value: 5,
-        branch: "Uptown",
-        start: "2025-08-10",
-        end: "2025-08-20",
-        description: "$5 off coffee beans",
-        uses: 15,
-      },
-      {
-        code: "LATTE15",
-        type: "percentage",
-        value: 15,
-        branch: "Downtown",
-        start: "2025-08-05",
-        end: "2025-08-25",
-        description: "15% off all lattes",
-        uses: 27,
-      },
-    ];
-
     try {
-      // Simulate API call delay
-      const data = await new Promise((resolve) =>
-        setTimeout(() => resolve(mockData), 800)
-      );
-
-      setPromotions(data);
+      const res = await promotionsApi.getAllPromotions();
+      if (res.success) {
+        setPromotions(res.data);
+      } else {
+        console.error(res.message || "Failed to fetch promotions");
+      }
     } catch (err) {
-      console.error(err);
+      console.error("Error fetching promotions:", err);
     } finally {
       setLoading(false);
     }
@@ -99,8 +64,6 @@ export default function AdminPromotions() {
 
           {/* Promotions Table */}
           <PromotionTable
-            branchFilter={branchFilter}
-            setBranchFilter={setBranchFilter}
             promotions={promotions}
           />
         </>

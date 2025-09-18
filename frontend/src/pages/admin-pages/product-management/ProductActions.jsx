@@ -12,7 +12,7 @@ export default function ProductActions({
   branchCategories,
   setIsAddMode,
   setShowDialog,
-  isExpired
+  
 }) {
   const csvInputRef = useRef(null);
 
@@ -33,12 +33,7 @@ const openAddDialog = () => {
     setShowDialog(true);
   };
 
-  const discardExpired = () => {
-    if (!selectedBranch) return;
-    setCurrentInventory((prev) =>
-      prev.filter((inv) => !isExpired(inv.expiryDate))
-    );
-  };
+  
 
   
 
@@ -150,12 +145,7 @@ const openAddDialog = () => {
   return (
     <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
       <div className="flex flex-wrap gap-4">
-        <button
-          onClick={discardExpired}
-          className="flex items-center gap-2 bg-red-200 hover:bg-red-300 text-red-800 px-5 py-3 rounded-lg font-semibold shadow"
-        >
-          <Clock size={18} /> Discard Expired Items
-        </button>
+        
 
         <button
           onClick={openAddDialog}

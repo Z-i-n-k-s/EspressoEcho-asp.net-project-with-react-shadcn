@@ -3,8 +3,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import ProductDialog from "./ProductDialog";
 import ProductTable from "./ProductTable";
 import CategoryManager from "./CategoryManager";
-import ProductChart from "./ProductChart";
-import BranchSelector from "./BranchSelector";
 import ProductActions from "./ProductActions";
 
 export default function ProductManagement() {
@@ -207,29 +205,10 @@ export default function ProductManagement() {
           📦 Product Management
         </h1>
 
-        {/* Branch Selector */}
-        <BranchSelector
-          branches={branches}
-          selectedBranch={selectedBranch}
-          setSelectedBranch={setSelectedBranch}
-        />
+        
       </div>
 
-      {!selectedBranch ? (
-        <div className="bg-[#fff8f1] p-6 rounded-2xl shadow-md border border-[#e7dcd3]">
-          <p className="text-[#5c4033] text-lg">
-            Please select a branch to manage its products and categories.
-          </p>
-        </div>
-      ) : loading ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6b4226]"></div>
-          <span className="ml-3 text-[#6b4226] font-semibold">
-            Loading products...
-          </span>
-        </div>
-      ) : (
-        <>
+     
           {/* Admin: Branch Category Management */}
           <CategoryManager
             currentBranchName={currentBranchName}
@@ -251,19 +230,11 @@ export default function ProductManagement() {
             setCurrentInventory={setCurrentInventory}
             upsertBranchCategories={upsertBranchCategories}
             currentInventory={currentInventory}
-            isExpired={isExpired}
+
             branchCategories={branchCategories}
           />
 
-          {/* Category Filter + Chart */}
-          <ProductChart
-            currentBranchName={currentBranchName}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-            branchCategories={branchCategories}
-            currentInventory={currentInventory}
-            filteredInventory={filteredInventory}
-          />
+          
 
           {/* Inventory Table */}
           <ProductTable
@@ -292,8 +263,7 @@ export default function ProductManagement() {
               selectedBranch={selectedBranch}
             />
           )}
-        </>
-      )}
+      
     </div>
   );
 }
