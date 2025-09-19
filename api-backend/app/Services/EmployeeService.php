@@ -47,7 +47,7 @@ class EmployeeService
     }
 
     /**
-     * Create user and employee together
+     * Create user and employee together with manager validation
      */
     public function create(array $data): Employee
     {
@@ -64,6 +64,32 @@ class EmployeeService
                 throw ValidationException::withMessages([
                     'created_by' => 'Creator user not found.'
                 ]);
+            }
+
+            // Check if this user is already a manager at another branch
+            if ($data['role'] === 'manager') {
+                $existingManager = Employee::where('user_id', $data['user_id'] ?? null)
+                    ->where('role', 'manager')
+                    ->exists();
+                    
+                if ($existingManager) {
+                    throw ValidationException::withMessages([
+                        'role' => 'This user is already a manager at another branch.'
+                    ]);
+                }
+                
+                // Check if the branch already has a manager
+                if (!empty($data['branch_id'])) {
+                    $branchHasManager = Branch::where('id', $data['branch_id'])
+                        ->whereNotNull('manager_id')
+                        ->exists();
+                        
+                    if ($branchHasManager) {
+                        throw ValidationException::withMessages([
+                            'branch_id' => 'This branch already has a manager assigned.'
+                        ]);
+                    }
+                }
             }
 
             // 1. Create user first
@@ -114,7 +140,7 @@ class EmployeeService
     }
 
     /**
-     * Update employee info
+     * Update employee info with manager validation
      */
     public function update(string $id, array $data): Employee
     {
@@ -128,6 +154,38 @@ class EmployeeService
                 throw ValidationException::withMessages([
                     'branch_id' => 'Branch not found.'
                 ]);
+            }
+
+            // Check manager assignment constraints
+            if (isset($data['role']) && $data['role'] === 'manager' || 
+                (!isset($data['role']) && $oldRole === 'manager' && isset($data['branch_id']))) {
+                
+                $newBranchId = $data['branch_id'] ?? $oldBranchId;
+                
+                // Check if this user is already a manager at another branch
+                $existingManager = Employee::where('user_id', $employee->user_id)
+                    ->where('role', 'manager')
+                    ->where('id', '!=', $id)
+                    ->exists();
+                    
+                if ($existingManager) {
+                    throw ValidationException::withMessages([
+                        'role' => 'This user is already a manager at another branch.'
+                    ]);
+                }
+                
+                // Check if the branch already has a manager (if changing branch)
+                if (!empty($newBranchId) && $newBranchId !== $oldBranchId) {
+                    $branchHasManager = Branch::where('id', $newBranchId)
+                        ->whereNotNull('manager_id')
+                        ->exists();
+                        
+                    if ($branchHasManager) {
+                        throw ValidationException::withMessages([
+                            'branch_id' => 'This branch already has a manager assigned.'
+                        ]);
+                    }
+                }
             }
 
             // Update employee
@@ -168,6 +226,20 @@ class EmployeeService
                     Branch::where('id', $data['branch_id'])
                         ->update(['manager_id' => $employee->user_id]);
                 }
+            } elseif (isset($data['branch_id']) && $data['branch_id'] !== $oldBranchId) {
+                // If only branch changed for a manager
+                if ($oldRole === 'manager' && $oldBranchId) {
+                    // Remove from old branch
+                    Branch::where('id', $oldBranchId)
+                        ->where('manager_id', $employee->user_id)
+                        ->update(['manager_id' => null]);
+                }
+                
+                if ($oldRole === 'manager' && !empty($data['branch_id'])) {
+                    // Add to new branch
+                    Branch::where('id', $data['branch_id'])
+                        ->update(['manager_id' => $employee->user_id]);
+                }
             }
 
             return $employee->load(['user', 'branch', 'creator']);
@@ -175,7 +247,7 @@ class EmployeeService
     }
 
     /**
-     * Delete employee with all related records
+     * Delete employee with all related records and cleanup
      */
     public function delete(string $id): bool
     {
@@ -237,7 +309,14 @@ class EmployeeService
 
             // 5. Delete the related user as well
             if ($deleted) {
-                DB::table('users')->where('id', $userId)->delete();
+                // Check if user has other roles before deleting
+                $hasOtherRoles = DB::table('user_roles')
+                    ->where('user_id', $userId)
+                    ->exists();
+                    
+                if (!$hasOtherRoles) {
+                    DB::table('users')->where('id', $userId)->delete();
+                }
             }
 
             return $deleted;

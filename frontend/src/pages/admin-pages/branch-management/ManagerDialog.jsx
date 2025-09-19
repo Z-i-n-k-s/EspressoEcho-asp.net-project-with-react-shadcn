@@ -42,10 +42,10 @@ export default function ManagerDialog({
 
       // Normalize manager for parent
       onSave({
-        employeeId: newManager.id,
-        userId: newManager.user_id,
-        fullName: newManager.user?.full_name || newManager.full_name,
-        email: newManager.user?.email || newManager.email,
+        employeeId: newManager.data.id,
+        userId: newManager.data.user_id,
+        fullName: newManager.data.user?.full_name || newManager.data.full_name,
+        email: newManager.data.user?.email || newManager.data.email,
       });
 
       setShowDialog(false);
