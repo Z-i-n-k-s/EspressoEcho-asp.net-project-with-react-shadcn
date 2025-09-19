@@ -14,6 +14,7 @@ export default function InventoryChart({
   filteredInventory,
   selectedCategory,
   setSelectedCategory,
+  categories
 }) {
   return (
     <div className="bg-[#fff8f1] p-5 rounded-xl shadow-md mb-8">
@@ -27,8 +28,11 @@ export default function InventoryChart({
           className="p-2 border rounded-lg"
         >
           <option value="All">All Categories</option>
-          <option value="Coffees">Coffees</option>
-          <option value="Desserts">Desserts</option>
+          {categories.map((cat) => (
+            <option key={cat} value={cat}>
+              {cat}
+            </option>
+          ))}
         </select>
       </div>
       <ResponsiveContainer width="100%" height={300}>
@@ -43,3 +47,4 @@ export default function InventoryChart({
     </div>
   );
 }
+
