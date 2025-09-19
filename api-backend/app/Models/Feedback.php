@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Feedback extends Model
 {
     use HasFactory, HasUuids;
+    protected $table = 'feedbacks'; 
 
     protected $fillable = [
         'customer_id',

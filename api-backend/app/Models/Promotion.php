@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 
 class Promotion extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     
     public $incrementing = false;

@@ -5,10 +5,18 @@ namespace App\Services;
 use App\Models\Employee;
 use App\Models\Branch;
 use App\Models\User;
+use App\Models\BranchAnnouncement;
+use App\Models\InventoryTransfer;
+use App\Models\Order;
+use App\Models\OfflineOrder;
+use App\Models\Payment;
+use App\Models\DeliveryAssignment;
+use App\Models\InventoryAdjustment;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Exception;
+use Illuminate\Validation\ValidationException;
 
 class EmployeeService
 {
@@ -44,6 +52,20 @@ class EmployeeService
     public function create(array $data): Employee
     {
         return DB::transaction(function () use ($data) {
+            // Validate branch exists if provided
+            if (!empty($data['branch_id']) && !Branch::where('id', $data['branch_id'])->exists()) {
+                throw ValidationException::withMessages([
+                    'branch_id' => 'Branch not found.'
+                ]);
+            }
+
+            // Validate creator exists
+            if (!User::where('id', $data['created_by'])->exists()) {
+                throw ValidationException::withMessages([
+                    'created_by' => 'Creator user not found.'
+                ]);
+            }
+
             // 1. Create user first
             $user = User::create([
                 'id'            => (string) Str::uuid(),
@@ -54,10 +76,13 @@ class EmployeeService
             ]);
 
             // 2. Assign customer role to the user
-            DB::table('user_roles')->insert([
-                'user_id' => $user->id,
-                'role_id' => DB::table('roles')->where('name', 'customer')->value('id')
-            ]);
+            $customerRoleId = DB::table('roles')->where('name', 'customer')->value('id');
+            if ($customerRoleId) {
+                DB::table('user_roles')->insert([
+                    'user_id' => $user->id,
+                    'role_id' => $customerRoleId
+                ]);
+            }
 
             // 3. Create employee linked to that user
             $employee = Employee::create([
@@ -70,10 +95,13 @@ class EmployeeService
             ]);
 
             // 4. Assign employee role to the user
-            DB::table('user_roles')->insert([
-                'user_id' => $user->id,
-                'role_id' => DB::table('roles')->where('name', $data['role'])->value('id')
-            ]);
+            $employeeRoleId = DB::table('roles')->where('name', $data['role'])->value('id');
+            if ($employeeRoleId) {
+                DB::table('user_roles')->insert([
+                    'user_id' => $user->id,
+                    'role_id' => $employeeRoleId
+                ]);
+            }
 
             // 5. If the role is 'manager', update the branch's manager_id
             if ($data['role'] === 'manager' && !empty($data['branch_id'])) {
@@ -85,7 +113,6 @@ class EmployeeService
         });
     }
 
-
     /**
      * Update employee info
      */
@@ -93,27 +120,54 @@ class EmployeeService
     {
         return DB::transaction(function () use ($id, $data) {
             $employee = Employee::findOrFail($id);
+            $oldRole = $employee->role;
+            $oldBranchId = $employee->branch_id;
+
+            // Validate branch exists if provided
+            if (!empty($data['branch_id']) && !Branch::where('id', $data['branch_id'])->exists()) {
+                throw ValidationException::withMessages([
+                    'branch_id' => 'Branch not found.'
+                ]);
+            }
 
             // Update employee
             $employee->update($data);
 
             // Update user role if employee role changed
-            if (isset($data['role'])) {
+            if (isset($data['role']) && $data['role'] !== $oldRole) {
                 // Remove existing employee roles
-                DB::table('user_roles')
-                    ->where('user_id', $employee->user_id)
-                    ->whereIn('role_id', function ($query) {
-                        $query->select('id')
-                            ->from('roles')
-                            ->whereIn('name', ['manager', 'cashier', 'staff']);
-                    })
-                    ->delete();
+                $employeeRoleIds = DB::table('roles')
+                    ->whereIn('name', ['manager', 'cashier', 'staff'])
+                    ->pluck('id');
+
+                if ($employeeRoleIds->isNotEmpty()) {
+                    DB::table('user_roles')
+                        ->where('user_id', $employee->user_id)
+                        ->whereIn('role_id', $employeeRoleIds)
+                        ->delete();
+                }
 
                 // Add new role
-                DB::table('user_roles')->insert([
-                    'user_id' => $employee->user_id,
-                    'role_id' => DB::table('roles')->where('name', $data['role'])->value('id')
-                ]);
+                $newRoleId = DB::table('roles')->where('name', $data['role'])->value('id');
+                if ($newRoleId) {
+                    DB::table('user_roles')->insert([
+                        'user_id' => $employee->user_id,
+                        'role_id' => $newRoleId
+                    ]);
+                }
+
+                // If changing from manager role, update branch manager_id
+                if ($oldRole === 'manager' && $oldBranchId) {
+                    Branch::where('id', $oldBranchId)
+                        ->where('manager_id', $employee->user_id)
+                        ->update(['manager_id' => null]);
+                }
+
+                // If changing to manager role, update branch manager_id
+                if ($data['role'] === 'manager' && !empty($data['branch_id'])) {
+                    Branch::where('id', $data['branch_id'])
+                        ->update(['manager_id' => $employee->user_id]);
+                }
             }
 
             return $employee->load(['user', 'branch', 'creator']);
@@ -121,23 +175,72 @@ class EmployeeService
     }
 
     /**
-     * Delete employee using stored procedure
+     * Delete employee with all related records
      */
-    public function deleteWithProcedure(string $employeeId, string $adminUserId, ?string $reason = null): string
+    public function delete(string $id): bool
     {
-        try {
-            // Check if employee exists
-            $employee = Employee::find($employeeId);
-            if (!$employee) {
-                throw new Exception('Employee not found');
+        return DB::transaction(function () use ($id) {
+            $employee = Employee::findOrFail($id);
+            $userId = $employee->user_id;
+
+            // 1. If employee is a manager, remove from branch
+            if ($employee->role === 'manager' && $employee->branch_id) {
+                Branch::where('id', $employee->branch_id)
+                    ->where('manager_id', $userId)
+                    ->update(['manager_id' => null]);
             }
 
-            // Use the database trigger instead of a stored procedure
-            $employee->delete();
+            // 2. Remove employee-specific roles
+            $employeeRoleIds = DB::table('roles')
+                ->whereIn('name', ['manager', 'cashier', 'staff'])
+                ->pluck('id');
 
-            return 'Employee deleted successfully';
-        } catch (Exception $e) {
-            throw new Exception('Failed to delete employee: ' . $e->getMessage());
-        }
+            if ($employeeRoleIds->isNotEmpty()) {
+                DB::table('user_roles')
+                    ->where('user_id', $userId)
+                    ->whereIn('role_id', $employeeRoleIds)
+                    ->delete();
+            }
+
+            // 3. Handle records where employee is referenced
+            // Inventory transfers
+            InventoryTransfer::where('requested_by', $id)->update(['requested_by' => null]);
+            InventoryTransfer::where('approved_by', $id)->update(['approved_by' => null]);
+            InventoryTransfer::where('received_by', $id)->update(['received_by' => null]);
+
+            // Orders
+            Order::where('handled_by', $id)->update(['handled_by' => null]);
+
+            // Offline orders
+            OfflineOrder::where('cashier_id', $id)->update(['cashier_id' => null]);
+
+            // Payments
+            Payment::where('collected_by', $id)->update(['collected_by' => null]);
+
+            // Delivery assignments
+            DeliveryAssignment::where('staff_id', $id)->update(['staff_id' => null]);
+            DeliveryAssignment::where('assigned_by', $id)->update(['assigned_by' => null]);
+
+            // Inventory adjustments
+            InventoryAdjustment::where('last_updated_by', $id)->update(['last_updated_by' => null]);
+
+            // Branch announcements
+            BranchAnnouncement::where('created_by', $userId)->update(['created_by' => null]);
+
+            // Branch inventory
+            DB::table('branch_inventory')
+                ->where('last_updated_by', $id)
+                ->update(['last_updated_by' => null]);
+
+            // 4. Delete the employee
+            $deleted = $employee->delete();
+
+            // 5. Delete the related user as well
+            if ($deleted) {
+                DB::table('users')->where('id', $userId)->delete();
+            }
+
+            return $deleted;
+        });
     }
 }

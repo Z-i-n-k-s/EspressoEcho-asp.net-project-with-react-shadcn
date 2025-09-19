@@ -37,18 +37,14 @@ CREATE TABLE users (
     full_name VARCHAR(255) NOT NULL,
     status ENUM('active', 'banned') NOT NULL DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL,
-    INDEX idx_users_email (email),
-    INDEX idx_users_status (status)
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 CREATE TABLE roles (
     id CHAR(36) PRIMARY KEY,
     name ENUM('admin', 'manager', 'cashier', 'staff', 'customer') UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 CREATE TABLE user_roles (
@@ -69,7 +65,6 @@ CREATE TABLE branches (
     status ENUM('open', 'closed', 'temporarily_closed') NOT NULL DEFAULT 'open',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL,
     FOREIGN KEY (manager_id) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_branches_status (status)
 ) ENGINE=InnoDB;
@@ -80,29 +75,30 @@ CREATE TABLE employees (
     branch_id CHAR(36) NULL,
     role ENUM('manager', 'cashier', 'staff') NOT NULL,
     hire_date DATE NOT NULL,
-    created_by CHAR(36) NOT NULL,
+    created_by CHAR(36) NULL,  -- Changed to NULL
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT,
+    FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE SET NULL,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_employees_branch (branch_id),
     INDEX idx_employees_user (user_id)
 ) ENGINE=InnoDB;
+
 
 CREATE TABLE branch_announcements (
     id CHAR(36) PRIMARY KEY,
     branch_id CHAR(36) NOT NULL,
     message TEXT NOT NULL,
     type ENUM('info', 'offer', 'closure') NOT NULL,
-    created_by CHAR(36) NOT NULL,
+    created_by CHAR(36) NULL,  -- Changed to NULL
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
+
 
 -- Product and Category Management
 CREATE TABLE categories (
@@ -110,8 +106,7 @@ CREATE TABLE categories (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 CREATE TABLE products (
@@ -122,12 +117,11 @@ CREATE TABLE products (
     image_url TEXT,
     category_id CHAR(36) NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
-    created_by CHAR(36) NOT NULL,
+    created_by CHAR(36)  NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL,
-    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE RESTRICT,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE  SET NULL,
     INDEX idx_products_category (category_id),
     INDEX idx_products_active (is_active)
 ) ENGINE=InnoDB;
@@ -139,11 +133,10 @@ CREATE TABLE toppings (
     description TEXT,
     price DECIMAL(10,2) NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
-    created_by CHAR(36) NOT NULL,
+    created_by CHAR(36)  NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE  SET NULL
 ) ENGINE=InnoDB;
 
 -- Mapping Table for Product-Toppings (Many-to-Many)
@@ -152,13 +145,13 @@ CREATE TABLE product_toppings (
     product_id CHAR(36) NOT NULL,
     topping_id CHAR(36) NOT NULL,
     is_default BOOLEAN DEFAULT FALSE,
-    created_by CHAR(36) NOT NULL,
+    created_by CHAR(36) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY unique_product_topping (product_id, topping_id),
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
     FOREIGN KEY (topping_id) REFERENCES toppings(id) ON DELETE CASCADE,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE  SET NULL
 ) ENGINE=InnoDB;
 
 -- Branch-Category Assignment
@@ -166,13 +159,14 @@ CREATE TABLE branch_categories (
     id CHAR(36) PRIMARY KEY,
     branch_id CHAR(36) NOT NULL,
     category_id CHAR(36) NOT NULL,
-    assigned_by CHAR(36) NOT NULL,
+    assigned_by CHAR(36) NULL,  -- Changed to NULL
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY unique_branch_category (branch_id, category_id),
     FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE CASCADE,
-    FOREIGN KEY (assigned_by) REFERENCES users(id) ON DELETE RESTRICT
+    FOREIGN KEY (assigned_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
+
 
 -- Inventory Management
 CREATE TABLE branch_inventory (
@@ -180,23 +174,22 @@ CREATE TABLE branch_inventory (
     product_id CHAR(36) NOT NULL,
     quantity_on_hand INTEGER NOT NULL DEFAULT 0,
     reorder_level INTEGER NOT NULL DEFAULT 0,
-    last_updated_by CHAR(36) NOT NULL,
+    last_updated_by CHAR(36) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL,
     PRIMARY KEY (branch_id, product_id),
     FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-    FOREIGN KEY (last_updated_by) REFERENCES employees(id) ON DELETE RESTRICT
+    FOREIGN KEY (last_updated_by) REFERENCES employees(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE inventory_transfers (
     id CHAR(36) PRIMARY KEY,
-    from_branch_id CHAR(36) NOT NULL,
-    to_branch_id CHAR(36) NOT NULL,
-    requested_by CHAR(36) NOT NULL,
-    approved_by CHAR(36),
-    received_by CHAR(36),
+    from_branch_id CHAR(36)  NULL,
+    to_branch_id CHAR(36)  NULL,
+    requested_by CHAR(36)  NULL,
+    approved_by CHAR(36) NULL,
+    received_by CHAR(36) NULL,
     status ENUM('pending', 'approved', 'completed', 'rejected') NOT NULL DEFAULT 'pending',
     reason TEXT,
     requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -205,22 +198,21 @@ CREATE TABLE inventory_transfers (
     rejection_reason TEXT,
     inventory_deducted BOOLEAN DEFAULT FALSE,
     inventory_added BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (from_branch_id) REFERENCES branches(id) ON DELETE RESTRICT,
-    FOREIGN KEY (to_branch_id) REFERENCES branches(id) ON DELETE RESTRICT,
-    FOREIGN KEY (requested_by) REFERENCES employees(id) ON DELETE RESTRICT,
-    FOREIGN KEY (approved_by) REFERENCES employees(id) ON DELETE RESTRICT,
-    FOREIGN KEY (received_by) REFERENCES employees(id) ON DELETE RESTRICT
+    FOREIGN KEY (from_branch_id) REFERENCES branches(id) ON DELETE  SET NULL,
+    FOREIGN KEY (to_branch_id) REFERENCES branches(id) ON DELETE  SET NULL,
+    FOREIGN KEY (requested_by) REFERENCES employees(id) ON DELETE  SET NULL,
+    FOREIGN KEY (approved_by) REFERENCES employees(id) ON DELETE SET NULL,
+    FOREIGN KEY (received_by) REFERENCES employees(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE inventory_transfer_items (
     id CHAR(36) PRIMARY KEY,
     transfer_id CHAR(36) NOT NULL,
-    product_id CHAR(36) NOT NULL,
+    product_id CHAR(36)  NULL,
     quantity INTEGER NOT NULL,
     FOREIGN KEY (transfer_id) REFERENCES inventory_transfers(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE  SET NULL
 ) ENGINE=InnoDB;
-
 
 -- Customer Management
 CREATE TABLE customers (
@@ -230,7 +222,6 @@ CREATE TABLE customers (
     default_delivery_address TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
@@ -248,10 +239,10 @@ CREATE TABLE promotions (
     is_active BOOLEAN DEFAULT TRUE,
     rule_type ENUM('order_count', 'customer_duration', 'order_amount'),
     rule_criteria TEXT,
-    created_by CHAR(36) NOT NULL,
+    created_by CHAR(36) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE  SET NULL,
     INDEX idx_promotions_validity (valid_from, valid_to, is_active),
     INDEX idx_promotions_code_active (code, is_active)
 ) ENGINE=InnoDB;
@@ -276,8 +267,8 @@ CREATE TABLE orders (
     completed_at TIMESTAMP NULL,
     cancelled_at TIMESTAMP NULL,
     handled_by CHAR(36),
-    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE RESTRICT,
-    FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE RESTRICT,
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+    FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE,
     FOREIGN KEY (promo_code_used) REFERENCES promotions(code) ON DELETE SET NULL,
     FOREIGN KEY (handled_by) REFERENCES employees(id) ON DELETE SET NULL,
     INDEX idx_orders_customer (customer_id),
@@ -307,7 +298,7 @@ CREATE TABLE customer_promotions (
 CREATE TABLE order_items (
     id CHAR(36) PRIMARY KEY,
     order_id CHAR(36) NOT NULL,
-    product_id CHAR(36) NOT NULL,
+    product_id CHAR(36) NULL,
     quantity INTEGER NOT NULL,
     unit_price DECIMAL(10,2) NOT NULL,
     total_price DECIMAL(10,2) NOT NULL,
@@ -315,31 +306,31 @@ CREATE TABLE order_items (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE  SET NULL
 ) ENGINE=InnoDB;
 
 -- Offline POS Orders
 CREATE TABLE offline_orders (
     id CHAR(36) PRIMARY KEY,
     branch_id CHAR(36) NOT NULL,
-    cashier_id CHAR(36) NOT NULL,
+    cashier_id CHAR(36) NULL,
     total_amount DECIMAL(10,2) NOT NULL,
     payment_method ENUM('cash', 'card') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE RESTRICT,
-    FOREIGN KEY (cashier_id) REFERENCES employees(id) ON DELETE RESTRICT
+    FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE,
+    FOREIGN KEY (cashier_id) REFERENCES employees(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE offline_order_items (
     id CHAR(36) PRIMARY KEY,
     offline_order_id CHAR(36) NOT NULL,
-    product_id CHAR(36) NOT NULL,
+    product_id CHAR(36) NULL,
     quantity INTEGER NOT NULL,
     unit_price DECIMAL(10,2) NOT NULL,
     total_price DECIMAL(10,2) NOT NULL,
     inventory_deducted BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (offline_order_id) REFERENCES offline_orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE  SET NULL
 ) ENGINE=InnoDB;
 
 -- Payment Management
@@ -364,16 +355,16 @@ CREATE TABLE payments (
 CREATE TABLE delivery_assignments (
     id CHAR(36) PRIMARY KEY,
     order_id CHAR(36) NOT NULL,
-    staff_id CHAR(36) NOT NULL,
-    assigned_by CHAR(36) NOT NULL,
+    staff_id CHAR(36)  NULL,
+    assigned_by CHAR(36) NULL,
     status ENUM('assigned', 'in_progress', 'delivered', 'failed') NOT NULL DEFAULT 'assigned',
     assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     started_at TIMESTAMP NULL,
     completed_at TIMESTAMP NULL,
     delivery_notes TEXT,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (staff_id) REFERENCES employees(id) ON DELETE RESTRICT,
-    FOREIGN KEY (assigned_by) REFERENCES employees(id) ON DELETE RESTRICT,
+    FOREIGN KEY (staff_id) REFERENCES employees(id) ON DELETE  SET NULL,
+    FOREIGN KEY (assigned_by) REFERENCES employees(id) ON DELETE  SET NULL,
     INDEX idx_delivery_status (status)
 ) ENGINE=InnoDB;
 
@@ -399,20 +390,19 @@ CREATE TABLE feedbacks (
 CREATE TABLE feedback_replies (
     id CHAR(36) PRIMARY KEY,
     feedback_id CHAR(36) NOT NULL,
-    responder_id CHAR(36) NOT NULL,
+    responder_id CHAR(36) NULL,
     responder_role ENUM('admin', 'manager') NOT NULL,
     message TEXT NOT NULL,
     replied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (feedback_id) REFERENCES feedbacks(id) ON DELETE CASCADE,
-    FOREIGN KEY (responder_id) REFERENCES users(id) ON DELETE RESTRICT
+    FOREIGN KEY (responder_id) REFERENCES users(id) ON DELETE  SET NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE product_reviews (
     id CHAR(36) PRIMARY KEY,
     customer_id CHAR(36) NOT NULL,
     product_id CHAR(36) NOT NULL,
-    branch_id CHAR(36) NOT NULL,
-    order_id CHAR(36) NOT NULL,
+    order_id CHAR(36) NULL,
     rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
     is_visible BOOLEAN DEFAULT TRUE,
@@ -421,25 +411,11 @@ CREATE TABLE product_reviews (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-    FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE,
-    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL,
     FOREIGN KEY (removed_by) REFERENCES users(id) ON DELETE SET NULL,
     INDEX idx_product_reviews_product (product_id),
     INDEX idx_product_reviews_visible (is_visible)
 ) ENGINE=InnoDB;
-
--- 1. Drop foreign key for branch_id (must do this before dropping the column)
-ALTER TABLE product_reviews
-DROP FOREIGN KEY product_reviews_ibfk_3;
-
--- 2. Drop the branch_id column
-ALTER TABLE product_reviews
-DROP COLUMN branch_id;
-
--- 3. Modify order_id to allow NULL (optional field)
-ALTER TABLE product_reviews
-MODIFY order_id CHAR(36) NULL;
-
 
 -- Inventory adjustments table for tracking manual adjustments, transfers, and losses
 CREATE TABLE inventory_adjustments (
@@ -460,36 +436,17 @@ CREATE TABLE inventory_adjustments (
     ) NOT NULL,
     quantity INTEGER NOT NULL,
     reason TEXT,
-    reference_order_id CHAR(36),
+    last_updated_by CHAR(36) NULL,
+    reference_order_type ENUM('online','offline') NULL,
+    reference_order_id CHAR(36) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMP NULL DEFAULT NULL,
     FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
-    FOREIGN KEY (reference_order_id) REFERENCES orders(id) ON DELETE SET NULL,
+    FOREIGN KEY (last_updated_by) REFERENCES employees(id) ON DELETE SET NULL,
     INDEX idx_inventory_adjustments_branch_product (branch_id, product_id),
     INDEX idx_inventory_adjustments_created_at (created_at)
 ) ENGINE=InnoDB;
-
-
-ALTER TABLE inventory_adjustments 
-ADD COLUMN last_updated_by VARCHAR(36) NULL AFTER reason,
-ADD CONSTRAINT fk_inventory_adjustments_employee 
-FOREIGN KEY (last_updated_by) REFERENCES employees(id);
-
-ALTER TABLE inventory_adjustments
-    DROP FOREIGN KEY inventory_adjustments_ibfk_3,
-    DROP COLUMN reference_order_id,
-    ADD COLUMN reference_order_type ENUM('online','offline') NULL AFTER reason,
-    ADD COLUMN reference_order_id CHAR(36) NULL AFTER reference_order_type;
-
-
-ALTER TABLE branch_announcements
-ADD COLUMN deleted_at TIMESTAMP NULL DEFAULT NULL AFTER updated_at;
-
-
-ALTER TABLE promotions 
-ADD COLUMN deleted_at TIMESTAMP NULL AFTER updated_at;
 
 -- Enable Event Scheduler
 SET GLOBAL event_scheduler = ON;

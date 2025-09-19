@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\FeedbackService;
+use App\Traits\AuthIdentity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -11,6 +12,7 @@ use Illuminate\Validation\Rule;
 class FeedbackController extends Controller
 {
     protected $feedbackService;
+    use AuthIdentity;
 
     public function __construct(FeedbackService $feedbackService)
     {
@@ -20,10 +22,11 @@ class FeedbackController extends Controller
     /**
      * Store a newly created feedback
      */
+  
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'customer_id' => 'required|uuid|exists:customers,id',
+            'customer_id' => 'required|uuid|exists:users,id', // user ID passed
             'branch_id' => 'required|uuid|exists:branches,id',
             'subject' => 'required|string|max:255',
             'message' => 'required|string',
@@ -44,9 +47,20 @@ class FeedbackController extends Controller
             ], 422);
         }
 
+        $validated = $validator->validated();
+
+        // Verify customer ID
+        $customerId = $this->customerId($validated['customer_id']);
+        if (!$customerId) {
+            return response()->json([
+                'message' => 'Unauthorized: Only a customer can submit feedback.'
+            ], 403);
+        }
+        $validated['customer_id'] = $customerId;
+
         try {
-            $feedback = $this->feedbackService->createFeedback($validator->validated());
-            
+            $feedback = $this->feedbackService->createFeedback($validated);
+
             return response()->json([
                 'message' => 'Feedback created successfully',
                 'data' => $feedback

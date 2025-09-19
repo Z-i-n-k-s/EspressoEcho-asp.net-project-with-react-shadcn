@@ -221,7 +221,7 @@ class ProductReviewController extends Controller
         }
 
         try {
-            $this->productReviewService->softDeleteReview($id);
+            $this->productReviewService->deleteReview($id);
             
             return response()->json([
                 'message' => 'Review deleted successfully'

@@ -1,21 +1,17 @@
+// SidebarLayout.js
 import React from "react";
 import ROLE from "@/lib/roles";
 import Sidebar from "../../pages/shared-components/sidebar/Sidebar";
-
-
-const userRole = localStorage.getItem("role") || ROLE.ADMIN; 
-//const userRole = localStorage.getItem("role") || ROLE.MANAGER; 
-//const userRole = localStorage.getItem("role") || ROLE.STAFF; 
-//const userRole = localStorage.getItem("role") || ROLE.CASHIER; 
- //const userRole = localStorage.getItem("role") || ROLE.GENERAL_USER;
-
+import { useSelector } from 'react-redux';
 
 const SidebarLayout = ({ children }) => {
+  const role = useSelector((state) => state.user.role) || ROLE.GENERAL_USER;
+
   return (
     <div className="flex">
       {/* Sidebar fixed */}
       <div className="fixed top-0 left-0 h-screen">
-        <Sidebar role={userRole} />
+        <Sidebar role={role} />
       </div>
 
       {/* Main content with scroll */}

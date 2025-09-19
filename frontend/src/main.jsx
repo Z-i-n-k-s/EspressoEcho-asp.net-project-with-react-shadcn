@@ -1,15 +1,16 @@
+// index.js
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
-import App from "./App.jsx";
-import { ThemeProvider } from "./theme/ThemeProvider.jsx";
 import { RouterProvider } from "react-router-dom";
-import router from "./page-routes/index.jsx";
+import { Provider } from "react-redux";
+import { store } from "./store/store";
+import router from "./page-routes/index.jsx"; // ✅ now it’s the router object
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-       <RouterProvider router={router}/>
-    </ThemeProvider>
+    <Provider store={store}>
+      <RouterProvider router={router} />
+    </Provider>
   </StrictMode>
 );

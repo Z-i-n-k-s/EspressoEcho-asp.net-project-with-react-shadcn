@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\FeedbackReply;
+use App\Models\Feedback;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -37,6 +38,9 @@ class FeedbackReplyService
     {
         return DB::transaction(function () use ($data) {
             try {
+                // Verify feedback exists
+                Feedback::findOrFail($data['feedback_id']);
+
                 $reply = FeedbackReply::create([
                     'feedback_id' => $data['feedback_id'],
                     'responder_id' => $data['responder_id'],
@@ -60,7 +64,7 @@ class FeedbackReplyService
                 
                 throw new \Exception('Failed to create reply: ' . $e->getMessage());
             }
-        });
+        }, 3); // Added 3 attempts for transaction
     }
 
     /**
@@ -70,8 +74,7 @@ class FeedbackReplyService
     {
         return DB::transaction(function () use ($id) {
             try {
-                $reply = FeedbackReply::with(['feedback', 'responder'])->findOrFail($id);
-                return $reply;
+                return FeedbackReply::with(['feedback', 'responder'])->findOrFail($id);
             } catch (\Exception $e) {
                 Log::error('Failed to retrieve feedback reply', [
                     'error' => $e->getMessage(),
@@ -91,11 +94,16 @@ class FeedbackReplyService
         return DB::transaction(function () use ($id, $data) {
             try {
                 $reply = FeedbackReply::findOrFail($id);
-                $reply->update($data);
+                
+                // Only allow updating message and replied_at
+                $updatableFields = ['message', 'replied_at'];
+                $filteredData = array_intersect_key($data, array_flip($updatableFields));
+                
+                $reply->update($filteredData);
 
                 Log::info('Feedback reply updated successfully', [
                     'reply_id' => $id,
-                    'updated_data' => $data
+                    'updated_data' => $filteredData
                 ]);
 
                 return $reply->fresh()->load(['feedback', 'responder']);

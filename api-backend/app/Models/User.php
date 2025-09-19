@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Tymon\JWTAuth\Contracts\JWTSubject; // <-- Add this
 
-class User extends Authenticatable
+class User extends Authenticatable implements JWTSubject // <-- Implement JWTSubject
 {
-    use HasFactory, Notifiable, HasUuids, SoftDeletes;
+    use HasFactory, Notifiable, HasUuids;
 
     protected $table = 'users';
     protected $primaryKey = 'id';
@@ -39,49 +40,25 @@ class User extends Authenticatable
         return $this->password_hash;
     }
 
-    // Relationships
-    public function roles()
+    // Relationships (unchanged)
+    public function roles() { return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id'); }
+    public function managedBranch() { return $this->hasOne(Branch::class, 'manager_id', 'id'); }
+    public function employee() { return $this->hasOne(Employee::class, 'user_id', 'id'); }
+    public function customer() { return $this->hasOne(Customer::class, 'user_id', 'id'); }
+    public function createdProducts() { return $this->hasMany(Product::class, 'created_by', 'id'); }
+    public function createdToppings() { return $this->hasMany(Topping::class, 'created_by', 'id'); }
+    public function createdPromotions() { return $this->hasMany(Promotion::class, 'created_by', 'id'); }
+    public function feedbackReplies() { return $this->hasMany(FeedbackReply::class, 'responder_id', 'id'); }
+    public function removedReviews() { return $this->hasMany(ProductReview::class, 'removed_by', 'id'); }
+
+    // JWT methods (required)
+    public function getJWTIdentifier()
     {
-        return $this->belongsToMany(Role::class, 'user_roles', 'user_id', 'role_id');
+        return $this->getKey(); // usually the primary key 'id'
     }
 
-    public function managedBranch()
+    public function getJWTCustomClaims()
     {
-        return $this->hasOne(Branch::class, 'manager_id', 'id');
-    }
-
-    public function employee()
-    {
-        return $this->hasOne(Employee::class, 'user_id', 'id');
-    }
-
-    public function customer()
-    {
-        return $this->hasOne(Customer::class, 'user_id', 'id');
-    }
-
-    public function createdProducts()
-    {
-        return $this->hasMany(Product::class, 'created_by', 'id');
-    }
-
-    public function createdToppings()
-    {
-        return $this->hasMany(Topping::class, 'created_by', 'id');
-    }
-
-    public function createdPromotions()
-    {
-        return $this->hasMany(Promotion::class, 'created_by', 'id');
-    }
-
-    public function feedbackReplies()
-    {
-        return $this->hasMany(FeedbackReply::class, 'responder_id', 'id');
-    }
-
-    public function removedReviews()
-    {
-        return $this->hasMany(ProductReview::class, 'removed_by', 'id');
+        return []; // any extra custom claims
     }
 }

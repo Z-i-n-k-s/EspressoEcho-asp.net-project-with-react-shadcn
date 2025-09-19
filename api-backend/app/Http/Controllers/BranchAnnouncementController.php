@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BranchAnnouncement;
 use App\Services\BranchAnnouncementService;
+use App\Traits\AuthIdentity;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\Validator;
 class BranchAnnouncementController extends Controller
 {
     protected $branchAnnouncementService;
+    use AuthIdentity;
 
     public function __construct(BranchAnnouncementService $branchAnnouncementService)
     {
@@ -37,7 +39,7 @@ class BranchAnnouncementController extends Controller
             'branch_id' => 'required|uuid|exists:branches,id',
             'message' => 'required|string|max:1000',
             'type' => 'required|in:info,offer,closure',
-            'created_by' => 'required|uuid|exists:users,id',
+            'created_by' => 'required|uuid|exists:users,id', // user ID passed
             'is_active' => 'sometimes|boolean'
         ]);
 
@@ -50,9 +52,21 @@ class BranchAnnouncementController extends Controller
 
         $validated = $validator->validated();
 
+        // Convert the user ID to actual admin ID
+        $adminId = $this->adminId($validated['created_by']);
+
+        if (!$adminId) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Unauthorized: User is not an admin.'
+            ], 403);
+        }
+
+        $validated['created_by'] = $adminId; // Replace with admin ID
+
         try {
             $announcement = $this->branchAnnouncementService->createAnnouncement($validated);
-            
+
             return response()->json([
                 'message' => 'Branch announcement created successfully',
                 'data' => $announcement
@@ -97,13 +111,13 @@ class BranchAnnouncementController extends Controller
     public function update(Request $request, string $id): JsonResponse
     {
         $data = array_merge($request->all(), ['id' => $id]);
-        
+
         $validator = Validator::make($data, [
             'id' => 'required|uuid|exists:branch_announcements,id',
             'branch_id' => 'sometimes|uuid|exists:branches,id',
             'message' => 'sometimes|string|max:1000',
             'type' => 'sometimes|in:info,offer,closure',
-            'created_by' => 'sometimes|uuid|exists:users,id',
+            'created_by' => 'sometimes|uuid|exists:users,id', // user ID passed
             'is_active' => 'sometimes|boolean'
         ]);
 
@@ -117,9 +131,21 @@ class BranchAnnouncementController extends Controller
         $validated = $validator->validated();
         unset($validated['id']); // Remove id from update data
 
+        // Convert user ID to admin ID if provided
+        if (isset($validated['created_by'])) {
+            $adminId = $this->adminId($validated['created_by']);
+            if (!$adminId) {
+                return response()->json([
+                    'error' => true,
+                    'message' => 'Unauthorized: User is not an admin.'
+                ], 403);
+            }
+            $validated['created_by'] = $adminId;
+        }
+
         try {
             $announcement = $this->branchAnnouncementService->updateAnnouncement($id, $validated);
-            
+
             return response()->json([
                 'message' => 'Branch announcement updated successfully',
                 'data' => $announcement
@@ -154,7 +180,7 @@ class BranchAnnouncementController extends Controller
 
         try {
             $this->branchAnnouncementService->deleteAnnouncement($id);
-            
+
             return response()->json([
                 'message' => 'Branch announcement deleted successfully'
             ], 200);
@@ -217,10 +243,10 @@ class BranchAnnouncementController extends Controller
 
         try {
             $count = $this->branchAnnouncementService->bulkUpdateStatus(
-                $request->ids, 
+                $request->ids,
                 $request->status
             );
-            
+
             return response()->json([
                 'message' => "Successfully updated $count announcement(s)",
                 'updated_count' => $count

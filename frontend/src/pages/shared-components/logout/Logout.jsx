@@ -1,23 +1,24 @@
-import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+// Logout.js
+import React, { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { clearUser } from '@/store/userSlice';
+import { useNavigate } from 'react-router-dom';
 
 const Logout = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // 1. Remove auth token or user info from localStorage/sessionStorage
-    localStorage.removeItem("authToken"); // example token
-    localStorage.removeItem("user"); // optional: user info
-
-    // 2. Optionally, you can also reset any context/redux state here
-
-    // 3. Redirect to home page
-    navigate("/", { replace: true });
-  }, [navigate]);
+    // Clear user from Redux and localStorage
+    dispatch(clearUser());
+    
+    // Redirect to home page after logout
+    navigate('/');
+  }, [dispatch, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center text-xl font-semibold">
-      Logging out...
+    <div className="flex items-center justify-center h-screen">
+      <p>Logging out...</p>
     </div>
   );
 };

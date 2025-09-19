@@ -4,6 +4,8 @@ use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EmployeeController;
 
+
+require __DIR__.'/auth_api.php';
 require __DIR__.'/branch_api.php';
 require __DIR__.'/employee_api.php';
 require __DIR__.'/category_api.php';
@@ -30,13 +32,7 @@ Route::get('/ping', function () {
 
 
 
-// -------------------------
-// Customer Routes
-// -------------------------
-Route::prefix('customers')->group(function () {
-    Route::post('register', [CustomerController::class, 'register']); // Register customer
-    // Future endpoints: index, show, update, delete
-});
+
 
 
 

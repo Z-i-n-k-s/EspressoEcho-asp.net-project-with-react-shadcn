@@ -12,8 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Branch extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes;
-
+    use HasFactory, HasUuids;
     protected $fillable = [
         'name',
         'address',
@@ -26,7 +25,7 @@ class Branch extends Model
         'status' => 'string',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
+        
     ];
 
     // Relationships

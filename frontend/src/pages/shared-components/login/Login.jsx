@@ -1,36 +1,86 @@
-import React, { useState, useEffect } from "react";
+// Login.js
+import apiClient from "@/api/ApiCilent";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { useDispatch } from 'react-redux';
+import { setUserDetails } from '@/store/userSlice';
 
 const Login = () => {
+  const [data, setData] = useState({
+    email: "",
+    password: "",
+  });
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ username: "", password: "" });
+  const dispatch = useDispatch();
 
-  useEffect(() => {
-    if (!document.querySelector('link[href*="font-awesome"]')) {
-      const link = document.createElement("link");
-      link.rel = "stylesheet";
-      link.href =
-        "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css";
-      link.crossOrigin = "anonymous";
-      document.head.appendChild(link);
-    }
-  }, []);
-
-  const handleInputChange = (e) => {
+  const handleOnChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Login Data:", formData);
+    setLoading(true);
 
-    // Simulate login validation
-    if (formData.username && formData.password) {
-      navigate("/"); // Navigate to home page
+    try {
+      const response = await apiClient.login({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (response.success) {
+        console.log("Login Successful", response);
+
+        // Store tokens
+        localStorage.setItem("access_token", response.access_token);
+        localStorage.setItem("refresh_token", response.refresh_token);
+
+        // Store user details in Redux
+        dispatch(setUserDetails(response.user_info));
+
+        // Get role from response
+        const roles = response.user_info.roles;
+        const role = roles.length ? roles[0].toLowerCase() : "customer";
+
+        // Navigate based on role
+        switch (role) {
+          case "admin":
+            toast.success("Welcome to admin panel");
+            navigate("/admin-panel/admin-dashboard");
+            break;
+          case "manager":
+            toast.success("Welcome to manager panel");
+            navigate("/manager-panel/manager-dashboard");
+            break;
+          case "staff":
+            toast.success("Welcome to staff panel");
+            navigate("/staff-panel/staff-dashboard");
+            break;
+          case "cashier":
+            toast.success("Welcome to cashier panel");
+            navigate("/cashier-panel/cashier-dashboard");
+            break;
+          case "customer":
+            toast.success("Welcome to user panel");
+            navigate("/user-panel/buy-now");
+            break;
+          default:
+            toast.error("Invalid role");
+        }
+      } else {
+        const errorMessage = response.message || "Wrong credentials!";
+        toast.error(errorMessage, { position: "top-center" });
+      }
+    } catch (error) {
+      const errorMessage =
+        error.response?.data?.message || "Something went wrong!";
+      toast.error(errorMessage, { position: "top-center" });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -42,11 +92,11 @@ const Login = () => {
           <div className="flex items-center bg-gray-100 rounded-full px-4">
             <i className="fas fa-user text-gray-400 mr-3"></i>
             <input
-              type="text"
-              name="username"
-              placeholder="Username"
-              value={formData.username}
-              onChange={handleInputChange}
+              type="email"
+              name="email"
+              placeholder="Email"
+              value={data.email}
+              onChange={handleOnChange}
               className="bg-transparent flex-1 outline-none py-3 text-gray-700"
               required
             />
@@ -57,21 +107,26 @@ const Login = () => {
               type="password"
               name="password"
               placeholder="Password"
-              value={formData.password}
-              onChange={handleInputChange}
+              value={data.password}
+              onChange={handleOnChange}
               className="bg-transparent flex-1 outline-none py-3 text-gray-700"
               required
             />
           </div>
           <button
             type="submit"
-            className="w-full py-3 rounded-full bg-blue-500 text-white font-semibold hover:bg-blue-600 transition"
+            disabled={loading}
+            className={`w-full py-3 rounded-full text-white font-semibold transition ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600"
+            }`}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
         <p className="text-center text-sm text-gray-500 mt-4">
-          Don’t have an account?{" "}
+          Don't have an account?{" "}
           <a href="/sign-up" className="text-blue-500 hover:underline">
             Sign up
           </a>

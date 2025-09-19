@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\FeedbackReplyService;
+use App\Traits\AuthIdentity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -11,6 +12,7 @@ use Illuminate\Validation\Rule;
 class FeedbackReplyController extends Controller
 {
     protected $feedbackReplyService;
+     use AuthIdentity;
 
     public function __construct(FeedbackReplyService $feedbackReplyService)
     {
@@ -58,8 +60,8 @@ class FeedbackReplyController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'feedback_id' => 'required|uuid|exists:feedbacks,id',
-            'responder_id' => 'required|uuid|exists:users,id',
-            'responder_role' => ['required', Rule::in(['admin', 'manager'])],
+            'responder_id' => 'required|uuid|exists:users,id', // user ID passed
+            'responder_role' => ['required', Rule::in(['admin'])],
             'message' => 'required|string',
             'replied_at' => 'sometimes|date'
         ], [
@@ -67,7 +69,7 @@ class FeedbackReplyController extends Controller
             'feedback_id.exists' => 'Feedback does not exist',
             'responder_id.uuid' => 'Responder ID must be a valid UUID',
             'responder_id.exists' => 'User does not exist',
-            'responder_role.in' => 'Responder role must be either admin or manager'
+            'responder_role.in' => 'Responder role must be admin'
         ]);
 
         if ($validator->fails()) {
@@ -77,9 +79,22 @@ class FeedbackReplyController extends Controller
             ], 422);
         }
 
+        $validated = $validator->validated();
+
+        // Verify admin ID
+        $adminId = $this->adminId($validated['responder_id']);
+        if (!$adminId) {
+            return response()->json([
+                'message' => 'Unauthorized: Only an admin can create replies.'
+            ], 403);
+        }
+
+        // Replace the user ID with the actual admin ID if needed
+        $validated['responder_id'] = $adminId;
+
         try {
-            $reply = $this->feedbackReplyService->createReply($validator->validated());
-            
+            $reply = $this->feedbackReplyService->createReply($validated);
+
             return response()->json([
                 'message' => 'Reply created successfully',
                 'data' => $reply

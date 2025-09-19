@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Models\Promotion;
 use App\Services\PromotionService;
+use App\Traits\AuthIdentity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Validator;
 class PromotionController extends Controller
 {
     protected $promotionService;
+     use AuthIdentity;
 
     public function __construct(PromotionService $promotionService)
     {
@@ -62,48 +64,58 @@ class PromotionController extends Controller
     /**
      * Store a newly created promotion.
      */
-    public function store(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'code' => 'required|alpha_dash|max:50|unique:promotions,code',
-            'description' => 'nullable|string|max:500',
-            'discount_type' => 'required|in:percentage,fixed_amount',
-            'discount_value' => 'required|numeric|min:0',
-            'valid_from' => 'required|date',
-            'valid_to' => 'required|date|after:valid_from',
-            'max_uses' => 'nullable|integer|min:1',
-            'rule_type' => 'nullable|in:order_count,customer_duration,order_amount',
-            'rule_criteria' => 'nullable|json',
-            'is_active' => 'boolean',
-            'created_by' => ['required', 'uuid', 'exists:users,id']
-        ]);
+  public function store(Request $request): JsonResponse
+{
+    $validator = Validator::make($request->all(), [
+        'code' => 'required|alpha_dash|max:50|unique:promotions,code',
+        'description' => 'nullable|string|max:500',
+        'discount_type' => 'required|in:percentage,fixed_amount',
+        'discount_value' => 'required|numeric|min:0',
+        'valid_from' => 'required|date',
+        'valid_to' => 'required|date|after:valid_from',
+        'max_uses' => 'nullable|integer|min:1',
+        'rule_type' => 'nullable|in:order_count,customer_duration,order_amount',
+        'rule_criteria' => 'nullable|json',
+        'is_active' => 'boolean',
+        'created_by' => ['required', 'uuid', 'exists:users,id'], // user_id
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation failed',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        try {
-            $promotion = $this->promotionService->createPromotion(
-                $validator->validated(),
-                $validator->validated()['created_by']
-            );
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Promotion created successfully',
-                'data' => $promotion
-            ], 201);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
-        }
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation failed',
+            'errors' => $validator->errors()
+        ], 422);
     }
+
+    // ✅ Check if the user is actually an admin
+    $adminId = $this->adminId($request->created_by);
+
+    if (!$adminId) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthorized: Only admins can create promotions.'
+        ], 403);
+    }
+
+    try {
+        $validated = $validator->validated();
+        $validated['created_by'] = $adminId; // now stores employee_id
+
+        $promotion = $this->promotionService->createPromotion($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Promotion created successfully',
+            'data' => $promotion
+        ], 201);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
 
     /**
      * Display the specified promotion.
