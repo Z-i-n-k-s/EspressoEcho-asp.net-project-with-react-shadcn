@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Topping extends Model
 {
-    use SoftDeletes;
+   
 
     protected $fillable = [
         'id',

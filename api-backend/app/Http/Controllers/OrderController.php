@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Services\OrderService;
+use App\Traits\AuthIdentity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -11,6 +12,7 @@ use Illuminate\Support\Facades\Validator;
 class OrderController extends Controller
 {
     protected $orderService;
+    use AuthIdentity;
 
     public function __construct(OrderService $orderService)
     {
@@ -38,21 +40,46 @@ class OrderController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-    public function updateStatus(Request $request, string $id): JsonResponse
+      public function updateStatus(Request $request, string $id): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'status' => 'required|in:pending,confirmed,preparing,ready_for_delivery,on_the_way,delivered,cancelled',
-            'handled_by' => 'required|uuid|exists:employees,id',
-            'delivery_staff_id' => 'required_if:status,ready_for_delivery|uuid|exists:employees,id'
+            'handled_by' => 'required|uuid', // user ID
+            'delivery_staff_id' => 'required_if:status,ready_for_delivery|uuid' // user ID
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        $validated = $validator->validated();
+
+        // Validate cashier role for handled_by
+        $cashierId = $this->cashierId($validated['handled_by']);
+        if (!$cashierId) {
+            return response()->json([
+                'message' => 'Unauthorized: Only a cashier can handle orders.'
+            ], 403);
+        }
+        $validated['handled_by'] = $cashierId;
+
+        // Validate staff role for delivery_staff_id if provided
+        if (isset($validated['delivery_staff_id'])) {
+            $staffId = $this->staffId($validated['delivery_staff_id']);
+            if (!$staffId) {
+                return response()->json([
+                    'message' => 'Unauthorized: Only a staff member can deliver orders.'
+                ], 403);
+            }
+            $validated['delivery_staff_id'] = $staffId;
+        }
+
         try {
-            $order = $this->orderService->updateOrderStatus($id, $validator->validated());
-            return response()->json($order);
+            $order = $this->orderService->updateOrderStatus($id, $validated);
+            return response()->json([
+                'message' => 'Order status updated successfully',
+                'data' => $order
+            ]);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

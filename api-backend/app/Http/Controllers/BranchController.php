@@ -65,9 +65,4 @@ class BranchController extends Controller
         return response()->json(['message' => 'Branch deleted successfully']);
     }
 
-    public function restore(string $id): JsonResponse
-    {
-        $branch = $this->branchService->restoreBranch($id);
-        return response()->json($branch);
-    }
 }

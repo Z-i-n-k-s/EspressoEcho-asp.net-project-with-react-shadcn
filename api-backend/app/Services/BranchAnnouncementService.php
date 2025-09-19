@@ -1,9 +1,10 @@
 <?php
 
-// app/Services/BranchAnnouncementService.php
 namespace App\Services;
 
 use App\Models\BranchAnnouncement;
+use App\Models\Branch;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
@@ -38,12 +39,17 @@ class BranchAnnouncementService
     public function createAnnouncement(array $data): BranchAnnouncement
     {
         return DB::transaction(function () use ($data) {
-            $announcement = BranchAnnouncement::create($data);
-            
-            // You could add additional related operations here that need to be atomic
-            // For example, logging the creation activity
-            
-            return $announcement;
+            // Validate branch exists
+            if (!Branch::where('id', $data['branch_id'])->exists()) {
+                throw new ModelNotFoundException('Branch not found');
+            }
+
+            // Validate creator exists
+            if (!User::where('id', $data['created_by'])->exists()) {
+                throw new ModelNotFoundException('User not found');
+            }
+
+            return BranchAnnouncement::create($data);
         });
     }
 
@@ -59,11 +65,13 @@ class BranchAnnouncementService
                 throw new ModelNotFoundException('Branch announcement not found');
             }
 
+            // Validate branch exists if being updated
+            if (isset($data['branch_id']) && !Branch::where('id', $data['branch_id'])->exists()) {
+                throw new ModelNotFoundException('Branch not found');
+            }
+
             $announcement->update($data);
             $announcement->load(['branch', 'creator']);
-
-            // You could add additional related operations here that need to be atomic
-            // For example, logging the update activity
 
             return $announcement;
         });
@@ -81,9 +89,7 @@ class BranchAnnouncementService
                 throw new ModelNotFoundException('Branch announcement not found');
             }
 
-            // You could add additional related operations here that need to be atomic
-            // For example, logging the deletion activity or cleaning up related records
-
+            // Hard delete the announcement
             return $announcement->delete();
         });
     }
@@ -93,12 +99,10 @@ class BranchAnnouncementService
      */
     public function getActiveAnnouncementsByBranch(string $branchId): Collection
     {
-        return DB::transaction(function () use ($branchId) {
-            return BranchAnnouncement::where('branch_id', $branchId)
-                ->where('is_active', true)
-                ->with(['branch', 'creator'])
-                ->get();
-        });
+        return BranchAnnouncement::where('branch_id', $branchId)
+            ->where('is_active', true)
+            ->with(['branch', 'creator'])
+            ->get();
     }
 
     /**

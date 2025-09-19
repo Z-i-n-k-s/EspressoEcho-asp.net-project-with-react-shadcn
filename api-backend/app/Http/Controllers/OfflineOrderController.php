@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\OfflineOrderService;
+use App\Traits\AuthIdentity;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -22,12 +23,13 @@ class OfflineOrderController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
+    use AuthIdentity;
+
     public function index(Request $request): JsonResponse
     {
-        // Validate request parameters
         $validator = Validator::make($request->all(), [
             'branch_id' => 'sometimes|uuid|exists:branches,id',
-            'cashier_id' => 'sometimes|uuid|exists:employees,id',
+            'cashier_id' => 'sometimes|uuid', // user ID
             'payment_method' => 'sometimes|in:cash,card',
             'date' => 'sometimes|date',
         ]);
@@ -40,35 +42,35 @@ class OfflineOrderController extends Controller
             ], 422);
         }
 
-        $result = $this->offlineOrderService->getAllOrders($request->all());
-        
-        if ($result['success']) {
-            return response()->json([
-                'success' => true,
-                'data' => $result['data'],
-                'message' => $result['message']
-            ]);
-        } else {
-            return response()->json([
-                'success' => false,
-                'message' => $result['message'],
-                'error' => $result['error'] ?? null
-            ], 500);
+        $params = $validator->validated();
+
+        // Resolve cashier_id from user ID to employee ID
+        if (!empty($params['cashier_id'])) {
+            $cashierEmployeeId = $this->cashierId($params['cashier_id']);
+            if (!$cashierEmployeeId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized: Only a cashier can be assigned.',
+                ], 403);
+            }
+            $params['cashier_id'] = $cashierEmployeeId;
         }
+
+        $result = $this->offlineOrderService->getAllOrders($params);
+
+        return response()->json([
+            'success' => $result['success'],
+            'data' => $result['data'] ?? null,
+            'message' => $result['message'],
+            'error' => $result['error'] ?? null
+        ], $result['success'] ? 200 : 500);
     }
 
-    /**
-     * Create a new offline order
-     *
-     * @param Request $request
-     * @return JsonResponse
-     */
     public function store(Request $request): JsonResponse
     {
-        // Validate request data
         $validator = Validator::make($request->all(), [
             'branch_id' => 'required|uuid|exists:branches,id',
-            'cashier_id' => 'required|uuid|exists:employees,id',
+            'cashier_id' => 'required|uuid', // user ID
             'payment_method' => 'required|in:cash,card',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|uuid|exists:products,id',
@@ -84,28 +86,31 @@ class OfflineOrderController extends Controller
             ], 422);
         }
 
-        $result = $this->offlineOrderService->createOrder(
-            $request->only(['branch_id', 'cashier_id', 'payment_method']),
-            $request->input('items')
-        );
+        $validated = $validator->validated();
 
-        if ($result['success']) {
-            return response()->json([
-                'success' => true,
-                'data' => $result['data'],
-                'message' => $result['message']
-            ], 201);
-        } else {
-            // Return 422 for validation errors (like cashier not in branch)
-            // and 500 for server errors
-            $statusCode = strpos($result['message'], 'does not belong') !== false ? 422 : 500;
-            
+        // Resolve cashier ID
+        $cashierEmployeeId = $this->cashierId($validated['cashier_id']);
+        if (!$cashierEmployeeId) {
             return response()->json([
                 'success' => false,
-                'message' => $result['message'],
-                'error' => $result['error'] ?? null
-            ], $statusCode);
+                'message' => 'Unauthorized: Only a cashier can create orders.',
+            ], 403);
         }
+        $validated['cashier_id'] = $cashierEmployeeId;
+
+        $result = $this->offlineOrderService->createOrder(
+            $validated,
+            $validated['items']
+        );
+
+        $statusCode = $result['success'] ? 201 : (strpos($result['message'], 'does not belong') !== false ? 422 : 500);
+
+        return response()->json([
+            'success' => $result['success'],
+            'data' => $result['data'] ?? null,
+            'message' => $result['message'],
+            'error' => $result['error'] ?? null
+        ], $statusCode);
     }
 
     /**
@@ -115,23 +120,20 @@ class OfflineOrderController extends Controller
      * @param string $cashierId
      * @return JsonResponse
      */
-    public function getByCashierId(Request $request, string $cashierId): JsonResponse
+    public function getByCashierId(Request $request, string $cashierUserId): JsonResponse
     {
-        // Validate cashier ID
-        $validator = Validator::make(['cashier_id' => $cashierId], [
-            'cashier_id' => 'required|uuid|exists:employees,id',
-        ]);
+        // Resolve cashier user_id to employee_id
+        $cashierEmployeeId = $this->cashierId($cashierUserId);
 
-        if ($validator->fails()) {
+        if (!$cashierEmployeeId) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid cashier ID',
-                'errors' => $validator->errors()
-            ], 422);
+                'message' => 'Unauthorized: Only a cashier can be queried.',
+            ], 403);
         }
 
-        $result = $this->offlineOrderService->getOrdersByCashierId($cashierId);
-        
+        $result = $this->offlineOrderService->getOrdersByCashierId($cashierEmployeeId);
+
         if ($result['success']) {
             return response()->json([
                 'success' => true,

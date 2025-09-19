@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\EmployeeService;
+use App\Traits\AuthIdentity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -11,6 +12,7 @@ use Exception;
 
 class EmployeeController extends Controller
 {
+    use AuthIdentity;
     protected EmployeeService $employeeService;
 
     public function __construct(EmployeeService $employeeService)
@@ -56,11 +58,11 @@ class EmployeeController extends Controller
         $this->validateUuid($id);
 
         $employee = $this->employeeService->find($id);
-        
+
         if (!$employee) {
             return response()->json(['message' => 'Employee not found'], 404);
         }
-        
+
         return response()->json($employee);
     }
 
@@ -79,16 +81,32 @@ class EmployeeController extends Controller
             'branch_id'  => ['nullable', 'uuid', 'exists:branches,id'],
             'role'       => ['required', Rule::in(['manager', 'cashier', 'staff'])],
             'hire_date'  => ['required', 'date'],
-            'created_by' => ['required', 'uuid', 'exists:users,id'],
+            'created_by' => ['required', 'uuid', 'exists:users,id'], // user ID passed
         ]);
+
+        // Validate created_by is an admin
+        $adminId = $this->adminId($validated['created_by']);
+        if (!$adminId) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Unauthorized: Only an admin can create employees.'
+            ], 403);
+        }
+        $validated['created_by'] = $adminId;
 
         try {
             $employee = $this->employeeService->create($validated);
-            return response()->json($employee, 201);
-        } catch (Exception $e) {
+
             return response()->json([
-                'error' => 'Employee creation failed',
-                'message' => $e->getMessage()
+                'success' => true,
+                'message' => 'Employee created successfully',
+                'data' => $employee
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => true,
+                'message' => 'Employee creation failed',
+                'details' => $e->getMessage()
             ], 400);
         }
     }
@@ -124,24 +142,47 @@ class EmployeeController extends Controller
     {
         $this->validateUuid($id);
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'admin_user_id' => 'required|uuid|exists:users,id',
             'reason'        => 'nullable|string'
         ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
         try {
-            $message = $this->employeeService->deleteWithProcedure(
+            $data = $validator->validated();
+
+            // ✅ Verify Admin
+            $adminId = $this->adminId($data['admin_user_id']);
+            if (!$adminId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized: Only admins can delete employees.'
+                ], 403);
+            }
+
+            $message = $this->employeeService->delete(
                 $id,
-                $validated['admin_user_id'],
-                $validated['reason'] ?? null
+                $adminId,
+                $data['reason'] ?? null
             );
 
-            return response()->json(['message' => $message], 200);
-        } catch (Exception $e) {
             return response()->json([
-                'error' => 'Deletion failed',
-                'message' => $e->getMessage()
-            ], 400);
+                'success' => true,
+                'message' => $message
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Deletion failed',
+                'error'   => $e->getMessage()
+            ], 500);
         }
     }
 }

@@ -3,21 +3,21 @@
 namespace App\Http\Controllers;
 
 use App\Services\ToppingService;
+use App\Traits\AuthIdentity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class ToppingController extends Controller
 {
-    public function __construct(private ToppingService $toppingService)
-    {
-    }
+    use AuthIdentity;
+    public function __construct(private ToppingService $toppingService) {}
 
     public function index(): JsonResponse
     {
         try {
             $toppings = $this->toppingService->getAllToppings();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $toppings,
@@ -31,7 +31,6 @@ class ToppingController extends Controller
             ], 500);
         }
     }
-
     public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
@@ -39,7 +38,7 @@ class ToppingController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'is_active' => 'boolean',
-            'created_by' => 'required|exists:users,id'
+            'created_by' => 'required|uuid|exists:users,id'
         ]);
 
         if ($validator->fails()) {
@@ -52,8 +51,18 @@ class ToppingController extends Controller
 
         try {
             $data = $validator->validated();
+
+            // ✅ Check admin role
+            $adminId = $this->adminId($data['created_by']);
+            if (!$adminId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized: Only admins can create toppings.'
+                ], 403);
+            }
+
             $topping = $this->toppingService->createTopping($data);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $topping,
@@ -68,11 +77,12 @@ class ToppingController extends Controller
         }
     }
 
+
     public function show(string $id): JsonResponse
     {
         try {
             $topping = $this->toppingService->getToppingById($id);
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $topping,
@@ -94,7 +104,7 @@ class ToppingController extends Controller
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'is_active' => 'boolean',
-            'created_by' => 'sometimes|required|exists:users,id'
+            'created_by' => 'required|uuid|exists:users,id'
         ]);
 
         if ($validator->fails()) {
@@ -107,13 +117,25 @@ class ToppingController extends Controller
 
         try {
             $data = $validator->validated();
-            $topping = $this->toppingService->updateTopping($id, $data);
-            
+
+            // ✅ Verify Admin
+            $adminId = $this->adminId($data['created_by']);
+            if (!$adminId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized: Only admins can update toppings.'
+                ], 403);
+            }
+
+            $topping = $this->toppingService->updateTopping($id, array_merge($data, [
+                'created_by' => $adminId
+            ]));
+
             return response()->json([
                 'success' => true,
                 'data' => $topping,
                 'message' => 'Topping updated successfully'
-            ]);
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -127,7 +149,7 @@ class ToppingController extends Controller
     {
         try {
             $this->toppingService->deleteTopping($id);
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Topping deleted successfully'
@@ -145,7 +167,7 @@ class ToppingController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'is_default' => 'boolean',
-            'created_by' => 'required|exists:users,id'
+            'created_by' => 'required|uuid|exists:users,id'
         ]);
 
         if ($validator->fails()) {
@@ -157,15 +179,30 @@ class ToppingController extends Controller
         }
 
         try {
-            $isDefault = $request->get('is_default', false);
-            $createdBy = $request->get('created_by');
-            
-            $this->toppingService->assignToProduct($toppingId, $productId, $isDefault, $createdBy);
-            
+            $data = $validator->validated();
+
+            // ✅ Check if user is an admin
+            $adminId = $this->adminId($data['created_by']);
+            if (!$adminId) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized: Only admins can assign toppings to products.'
+                ], 403);
+            }
+
+            $isDefault = $data['is_default'] ?? false;
+
+            $this->toppingService->assignToProduct(
+                $toppingId,
+                $productId,
+                $isDefault,
+                $adminId // 👈 we pass verified admin userId
+            );
+
             return response()->json([
                 'success' => true,
                 'message' => 'Topping assigned to product successfully'
-            ]);
+            ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -175,11 +212,12 @@ class ToppingController extends Controller
         }
     }
 
+
     public function removeFromProduct(string $toppingId, string $productId): JsonResponse
     {
         try {
             $this->toppingService->removeFromProduct($toppingId, $productId);
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Topping removed from product successfully'

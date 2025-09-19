@@ -4,38 +4,19 @@
 namespace App\Http\Controllers;
 
 use App\Services\CategoryService;
+use App\Traits\AuthIdentity;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
     protected $categoryService;
+    use AuthIdentity;
 
     public function __construct(CategoryService $categoryService)
     {
         $this->categoryService = $categoryService;
-    }
-
-    /**
-     * Validation rules for category creation
-     */
-    private function getCreateRules(): array
-    {
-        return [
-            'name' => 'required|string|max:255|unique:categories,name',
-            'description' => 'nullable|string',
-        ];
-    }
-
-    /**
-     * Validation rules for category update
-     */
-    private function getUpdateRules($id): array
-    {
-        return [
-            'name' => 'sometimes|required|string|max:255|unique:categories,name,' . $id,
-            'description' => 'nullable|string',
-        ];
     }
 
     /**
@@ -61,10 +42,12 @@ class CategoryController extends Controller
     /**
      * Store a newly created category.
      */
-    public function store(): JsonResponse
+    public function store(Request $request): JsonResponse
     {
-        // Validate data
-        $validator = Validator::make(request()->all(), $this->getCreateRules());
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255|unique:categories,name',
+            'description' => 'nullable|string',
+        ]);
         
         if ($validator->fails()) {
             return response()->json([
@@ -75,7 +58,7 @@ class CategoryController extends Controller
         }
         
         try {
-            $category = $this->categoryService->createCategory(request()->all());
+            $category = $this->categoryService->createCategory($request->all());
             
             return response()->json([
                 'success' => true,
@@ -113,10 +96,12 @@ class CategoryController extends Controller
     /**
      * Update the specified category.
      */
-    public function update(string $id): JsonResponse
+    public function update(Request $request, string $id): JsonResponse
     {
-        // Validate data
-        $validator = Validator::make(request()->all(), $this->getUpdateRules($id));
+        $validator = Validator::make($request->all(), [
+            'name' => 'sometimes|required|string|max:255|unique:categories,name,' . $id,
+            'description' => 'nullable|string',
+        ]);
         
         if ($validator->fails()) {
             return response()->json([
@@ -127,7 +112,7 @@ class CategoryController extends Controller
         }
         
         try {
-            $category = $this->categoryService->updateCategory($id, request()->all());
+            $category = $this->categoryService->updateCategory($id, $request->all());
             
             return response()->json([
                 'success' => true,
@@ -164,7 +149,6 @@ class CategoryController extends Controller
         }
     }
 
-
     /**
      * Get categories by branch.
      */
@@ -188,12 +172,13 @@ class CategoryController extends Controller
     /**
      * Assign or remove category from branches
      */
-      public function manageBranchAssignment(string $categoryId): JsonResponse
+ 
+    public function manageBranchAssignment(Request $request, string $categoryId): JsonResponse
     {
-        $validator = Validator::make(request()->all(), [
+        $validator = Validator::make($request->all(), [
             'branch_ids' => 'required|array',
             'branch_ids.*' => 'exists:branches,id',
-            'assigned_by' => 'required|exists:users,id',
+            'assigned_by' => 'required|exists:users,id', // user ID passed
             'action' => 'required|in:assign,remove'
         ]);
         
@@ -204,15 +189,24 @@ class CategoryController extends Controller
                 'errors' => $validator->errors()
             ], 422);
         }
-        
+
+        $validated = $validator->validated();
+
+        // Verify assigned_by is an admin
+        $adminId = $this->adminId($validated['assigned_by']);
+        if (!$adminId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: User is not an admin.'
+            ], 403);
+        }
+
+        $assign = ($validated['action'] === 'assign');
+        $branchIds = $validated['branch_ids'];
+
         try {
-            $action = request('action');
-            $branchIds = request('branch_ids');
-            $assignedBy = request('assigned_by');
-            $assign = ($action === 'assign');
-            
-            $this->categoryService->manageBranchAssignment($categoryId, $branchIds, $assignedBy, $assign);
-            
+            $this->categoryService->manageBranchAssignment($categoryId, $branchIds, $adminId, $assign);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Category ' . ($assign ? 'assigned to' : 'removed from') . ' branches successfully'
@@ -220,7 +214,8 @@ class CategoryController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to manage branch assignment'
+                'message' => 'Failed to manage branch assignment',
+                'error' => $e->getMessage()
             ], 500);
         }
     }

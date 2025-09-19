@@ -3,6 +3,13 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\ProductTopping;
+use App\Models\BranchInventory;
+use App\Models\OrderItem;
+use App\Models\OfflineOrderItem;
+use App\Models\InventoryAdjustment;
+use App\Models\InventoryTransferItem;
+use App\Models\ProductReview;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -96,7 +103,7 @@ class ProductService
     }
 
     /**
-     * Delete a product (hard delete)
+     * Delete a product and all its related data (hard delete)
      */
     public function deleteProduct(string $id): bool
     {
@@ -104,7 +111,18 @@ class ProductService
 
         try {
             $product = Product::findOrFail($id);
-            $product->forceDelete(); // Use forceDelete for hard delete
+            
+            // Delete all related data first to maintain referential integrity
+            ProductTopping::where('product_id', $id)->delete();
+            BranchInventory::where('product_id', $id)->delete();
+            OrderItem::where('product_id', $id)->delete();
+            OfflineOrderItem::where('product_id', $id)->delete();
+            InventoryAdjustment::where('product_id', $id)->delete();
+            InventoryTransferItem::where('product_id', $id)->delete();
+            ProductReview::where('product_id', $id)->delete();
+            
+            // Finally delete the product
+            $product->delete();
 
             DB::commit();
             return true;
@@ -112,6 +130,67 @@ class ProductService
             DB::rollBack();
             Log::error("Failed to delete product with ID {$id}: " . $e->getMessage());
             throw new \Exception('Could not delete product: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get products by category
+     */
+    public function getProductsByCategory(string $categoryId, bool $paginate = false, int $perPage = 15): Collection|LengthAwarePaginator
+    {
+        try {
+            $query = Product::with(['category', 'creator'])
+                ->where('category_id', $categoryId)
+                ->where('is_active', true)
+                ->orderBy('name');
+
+            return $paginate
+                ? $query->paginate($perPage)
+                : $query->get();
+        } catch (\Exception $e) {
+            Log::error("Failed to fetch products for category ID {$categoryId}: " . $e->getMessage());
+            throw new \Exception('Could not retrieve products: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get active products only
+     */
+    public function getActiveProducts(bool $paginate = false, int $perPage = 15): Collection|LengthAwarePaginator
+    {
+        try {
+            $query = Product::with(['category', 'creator'])
+                ->where('is_active', true)
+                ->orderBy('name');
+
+            return $paginate
+                ? $query->paginate($perPage)
+                : $query->get();
+        } catch (\Exception $e) {
+            Log::error('Failed to fetch active products: ' . $e->getMessage());
+            throw new \Exception('Could not retrieve products: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Toggle product active status
+     */
+    public function toggleProductStatus(string $id): Product
+    {
+        DB::beginTransaction();
+
+        try {
+            $product = Product::findOrFail($id);
+            $product->update([
+                'is_active' => !$product->is_active
+            ]);
+
+            DB::commit();
+            return $product->load(['category', 'creator']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Failed to toggle status for product with ID {$id}: " . $e->getMessage());
+            throw new \Exception('Could not toggle product status: ' . $e->getMessage());
         }
     }
 }

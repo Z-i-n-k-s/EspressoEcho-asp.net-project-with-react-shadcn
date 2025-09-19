@@ -18,9 +18,7 @@ class CategoryService
     public function getAllCategories(bool $paginate = false, int $perPage = 15): Collection|LengthAwarePaginator
     {
         try {
-            $query = Category::with(['products' => function ($query) {
-                $query->whereNull('deleted_at');
-            }, 'branches'])->whereNull('deleted_at');
+            $query = Category::with(['products', 'branches']);
 
             return $paginate
                 ? $query->paginate($perPage)
@@ -37,13 +35,8 @@ class CategoryService
     public function getCategoryById(string $id): Category
     {
         try {
-            $category = Category::with(['products' => function ($query) {
-                $query->whereNull('deleted_at');
-            }, 'branches'])
-                ->whereNull('deleted_at')
+            return Category::with(['products', 'branches'])
                 ->findOrFail($id);
-
-            return $category;
         } catch (\Exception $e) {
             Log::error("Failed to fetch category with ID {$id}: " . $e->getMessage());
             throw new \Exception('Category not found');
@@ -64,9 +57,7 @@ class CategoryService
             ]);
 
             DB::commit();
-            return $category->load(['products' => function ($query) {
-                $query->whereNull('deleted_at');
-            }, 'branches']);
+            return $category->load(['products', 'branches']);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Failed to create category: ' . $e->getMessage());
@@ -82,7 +73,7 @@ class CategoryService
         DB::beginTransaction();
 
         try {
-            $category = Category::whereNull('deleted_at')->findOrFail($id);
+            $category = Category::findOrFail($id);
 
             $category->update([
                 'name' => $data['name'] ?? $category->name,
@@ -90,9 +81,7 @@ class CategoryService
             ]);
 
             DB::commit();
-            return $category->load(['products' => function ($query) {
-                $query->whereNull('deleted_at');
-            }, 'branches']);
+            return $category->load(['products', 'branches']);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error("Failed to update category with ID {$id}: " . $e->getMessage());
@@ -101,8 +90,7 @@ class CategoryService
     }
 
     /**
-     * Delete a category (soft delete)
-     * Note: Database triggers will handle constraints
+     * Delete a category (hard delete)
      */
     public function deleteCategory(string $id): bool
     {
@@ -114,8 +102,8 @@ class CategoryService
             // First, delete any branch associations
             BranchCategory::where('category_id', $id)->delete();
 
-            // Then delete the category
-            $category->delete();
+            // Perform hard delete
+            $category->forceDelete();
 
             DB::commit();
             return true;
@@ -135,10 +123,7 @@ class CategoryService
             return Category::whereHas('branches', function ($query) use ($branchId) {
                 $query->where('branches.id', $branchId);
             })
-                ->whereNull('deleted_at')
-                ->with(['products' => function ($query) {
-                    $query->whereNull('deleted_at');
-                }, 'branches'])
+                ->with(['products', 'branches'])
                 ->get();
         } catch (\Exception $e) {
             Log::error("Failed to fetch categories for branch ID {$branchId}: " . $e->getMessage());
@@ -157,11 +142,10 @@ class CategoryService
             $category = Category::findOrFail($categoryId);
 
             if ($assign) {
-                // Assign category to branches with assigned_by user
                 $dataToInsert = [];
                 foreach ($branchIds as $branchId) {
                     $dataToInsert[] = [
-                        'id' => \Illuminate\Support\Str::uuid(), // Generate UUID
+                        'id' => \Illuminate\Support\Str::uuid(),
                         'branch_id' => $branchId,
                         'category_id' => $categoryId,
                         'assigned_by' => $assignedBy,
@@ -169,10 +153,8 @@ class CategoryService
                     ];
                 }
 
-                // Use insertOrIgnore to avoid duplicate key errors
                 BranchCategory::insertOrIgnore($dataToInsert);
             } else {
-                // Remove category from branches
                 BranchCategory::where('category_id', $categoryId)
                     ->whereIn('branch_id', $branchIds)
                     ->delete();

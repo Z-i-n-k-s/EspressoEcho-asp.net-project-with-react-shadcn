@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\InventoryTransfer;
 use App\Services\InventoryTransferService;
+use App\Traits\AuthIdentity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class InventoryTransferController extends Controller
 {
+    use AuthIdentity;
     protected $transferService;
 
     public function __construct(InventoryTransferService $transferService)
@@ -16,9 +18,8 @@ class InventoryTransferController extends Controller
         $this->transferService = $transferService;
     }
 
-    /**
-     * Request an inventory transfer between branches.
-     */
+  
+
     public function requestTransfer(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -28,7 +29,7 @@ class InventoryTransferController extends Controller
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
             'reason' => 'nullable|string|max:500',
-            'requested_by' => 'required|exists:employees,id',
+            'requested_by' => 'required|uuid', // user ID, not employee ID
         ]);
 
         if ($validator->fails()) {
@@ -38,13 +39,23 @@ class InventoryTransferController extends Controller
             ], 422);
         }
 
+        $validated = $validator->validated();
+
+        // Get manager employee ID from user ID
+        $managerId = $this->managerId($validated['requested_by']);
+        if (!$managerId) {
+            return response()->json([
+                'message' => 'Unauthorized: Only a manager can request transfers.'
+            ], 403);
+        }
+
         try {
             $transfer = $this->transferService->requestTransfer(
-                $request->from_branch_id,
-                $request->to_branch_id,
-                $request->items,
-                $request->requested_by,
-                $request->reason
+                $validated['from_branch_id'],
+                $validated['to_branch_id'],
+                $validated['items'],
+                $managerId,
+                $validated['reason'] ?? null
             );
 
             return response()->json([
@@ -59,13 +70,10 @@ class InventoryTransferController extends Controller
         }
     }
 
-    /**
-     * Approve an inventory transfer.
-     */
     public function approveTransfer(Request $request, $transferId)
     {
         $validator = Validator::make($request->all(), [
-            'approved_by' => 'required|exists:employees,id',
+            'approved_by' => 'required|uuid', // user ID
         ]);
 
         if ($validator->fails()) {
@@ -75,11 +83,15 @@ class InventoryTransferController extends Controller
             ], 422);
         }
 
+        $managerId = $this->managerId($request->approved_by);
+        if (!$managerId) {
+            return response()->json([
+                'message' => 'Unauthorized: Only a manager can approve transfers.'
+            ], 403);
+        }
+
         try {
-            $transfer = $this->transferService->approveTransfer(
-                $transferId,
-                $request->approved_by
-            );
+            $transfer = $this->transferService->approveTransfer($transferId, $managerId);
 
             return response()->json([
                 'message' => 'Transfer approved successfully',
@@ -93,13 +105,10 @@ class InventoryTransferController extends Controller
         }
     }
 
-    /**
-     * Reject an inventory transfer.
-     */
     public function rejectTransfer(Request $request, $transferId)
     {
         $validator = Validator::make($request->all(), [
-            'rejected_by' => 'required|exists:employees,id',
+            'rejected_by' => 'required|uuid',
             'rejection_reason' => 'required|string|max:500',
         ]);
 
@@ -110,10 +119,17 @@ class InventoryTransferController extends Controller
             ], 422);
         }
 
+        $managerId = $this->managerId($request->rejected_by);
+        if (!$managerId) {
+            return response()->json([
+                'message' => 'Unauthorized: Only a manager can reject transfers.'
+            ], 403);
+        }
+
         try {
             $transfer = $this->transferService->rejectTransfer(
                 $transferId,
-                $request->rejected_by,
+                $managerId,
                 $request->rejection_reason
             );
 
@@ -129,13 +145,10 @@ class InventoryTransferController extends Controller
         }
     }
 
-    /**
-     * Complete an inventory transfer.
-     */
     public function completeTransfer(Request $request, $transferId)
     {
         $validator = Validator::make($request->all(), [
-            'received_by' => 'required|exists:employees,id',
+            'received_by' => 'required|uuid', // user ID
         ]);
 
         if ($validator->fails()) {
@@ -145,11 +158,15 @@ class InventoryTransferController extends Controller
             ], 422);
         }
 
+        $managerId = $this->managerId($request->received_by);
+        if (!$managerId) {
+            return response()->json([
+                'message' => 'Unauthorized: Only a manager can complete transfers.'
+            ], 403);
+        }
+
         try {
-            $transfer = $this->transferService->completeTransfer(
-                $transferId,
-                $request->received_by
-            );
+            $transfer = $this->transferService->completeTransfer($transferId, $managerId);
 
             return response()->json([
                 'message' => 'Transfer completed successfully',

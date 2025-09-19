@@ -36,10 +36,7 @@ import Offers from "@/pages/user-pages/offers/Offers";
 import SignUp from "@/pages/shared-components/signup/SignUp";
 import Login from "@/pages/shared-components/login/Login";
 import MenuDetails from "@/pages/user-without-login/menu-user/MenuDetails";
-
-
-// TEMP: get role from localStorage (replace with Context/Redux later)
-const userRole = localStorage.getItem("role") || ROLE.GENERAL_USER;
+import { useSelector } from "react-redux";
 
 const router = createBrowserRouter([
   {
@@ -60,29 +57,25 @@ const router = createBrowserRouter([
       },
       {
         path: "/menu-user",
-        element: <MenuUser />
+        element: <MenuUser />,
       },
- {
-  path: "/menu/:id",   // <-- now it matches /menu/2
-  element: <MenuDetails />,
-},
+      {
+        path: "/menu/:id", // <-- now it matches /menu/2
+        element: <MenuDetails />,
+      },
 
-
-       {
+      {
         path: "/sign-up",
-        element: <SignUp/>
+        element: <SignUp />,
       },
-       {
+      {
         path: "/login",
-        element: <Login />
+        element: <Login />,
       },
-      
 
       // 🔹 Admin Routes
       {
-        element: (
-          <ProtectedRoute allowedRoles={[ROLE.ADMIN]} userRole={userRole} />
-        ),
+        element: <ProtectedRoute allowedRoles={[ROLE.ADMIN]} />,
         children: [
           {
             path: "admin-panel/admin-dashboard",
@@ -160,7 +153,7 @@ const router = createBrowserRouter([
             path: "/logout",
             element: (
               <SidebarLayout>
-                <Logout/>
+                <Logout />
               </SidebarLayout>
             ),
           },
@@ -169,9 +162,7 @@ const router = createBrowserRouter([
 
       // 🔹 Manager Routes
       {
-        element: (
-          <ProtectedRoute allowedRoles={[ROLE.MANAGER]} userRole={userRole} />
-        ),
+        element: <ProtectedRoute allowedRoles={[ROLE.MANAGER]} />,
         children: [
           {
             path: "manager-panel/manager-dashboard",
@@ -234,9 +225,7 @@ const router = createBrowserRouter([
 
       // 🔹 Staff Routes
       {
-        element: (
-          <ProtectedRoute allowedRoles={[ROLE.STAFF]} userRole={userRole} />
-        ),
+        element: <ProtectedRoute allowedRoles={[ROLE.STAFF]} />,
         children: [
           {
             path: "staff-panel/staff-dashboard",
@@ -267,9 +256,7 @@ const router = createBrowserRouter([
 
       // 🔹 Cashier Routes
       {
-        element: (
-          <ProtectedRoute allowedRoles={[ROLE.CASHIER]} userRole={userRole} />
-        ),
+        element: <ProtectedRoute allowedRoles={[ROLE.CASHIER]} />,
         children: [
           {
             path: "cashier-panel/cashier-dashboard",
@@ -300,58 +287,31 @@ const router = createBrowserRouter([
 
       // 🔹 User Routes
       {
-        element: (
-          <ProtectedRoute
-            allowedRoles={[ROLE.GENERAL_USER]}
-            userRole={userRole}
-          />
-        ),
+        element: <ProtectedRoute allowedRoles={[ROLE.GENERAL_USER]} />,
         children: [
           {
             path: "user-panel/buy-now",
-            element: (
-          
-                <UserBuyPage />
-              
-            ),
+            element: <UserBuyPage />,
           },
           {
             path: "user-panel/cart",
-            element: (
-              
-                <UserCart />
-              
-            ),
+            element: <UserCart />,
           },
           {
             path: "user-panel/offers",
-            element: (
-             <Offers/>
-            ),
+            element: <Offers />,
           },
           {
             path: "user-panel/orders",
-            element: (
-              
-                <UserOrders />
-             
-            ),
+            element: <UserOrders />,
           },
           {
             path: "user-panel/reviews",
-            element: (
-             
-                <UserReviews />
-            
-            ),
+            element: <UserReviews />,
           },
           {
             path: "user-panel/feedback",
-            element: (
-              
-                <UserFeedback />
-              
-            ),
+            element: <UserFeedback />,
           },
           {
             path: "/logout",
@@ -366,5 +326,4 @@ const router = createBrowserRouter([
     ],
   },
 ]);
-
 export default router;

@@ -15,21 +15,21 @@ class PromotionService
     {
         try {
             $query = Promotion::with('creator');
-            
+
             // Apply filters
             if (!empty($filters['search'])) {
                 $query->where('code', 'like', '%' . $filters['search'] . '%')
-                      ->orWhere('description', 'like', '%' . $filters['search'] . '%');
+                    ->orWhere('description', 'like', '%' . $filters['search'] . '%');
             }
-            
+
             if (isset($filters['is_active'])) {
                 $query->where('is_active', $filters['is_active']);
             }
-            
+
             if (!empty($filters['discount_type'])) {
                 $query->where('discount_type', $filters['discount_type']);
             }
-            
+
             return $query->orderBy('created_at', 'desc')->get();
         } catch (\Exception $e) {
             throw new \Exception('Failed to retrieve promotions: ' . $e->getMessage());
@@ -52,16 +52,15 @@ class PromotionService
     /**
      * Create a new promotion.
      */
-    public function createPromotion(array $data, string $createdBy): Promotion
+    public function createPromotion(array $data): Promotion
     {
         DB::beginTransaction();
-        
+
         try {
-            // Ensure code is unique
             if (Promotion::where('code', $data['code'])->exists()) {
                 throw new \Exception('Promotion code already exists.');
             }
-            
+
             $promotion = Promotion::create([
                 'code' => $data['code'],
                 'description' => $data['description'] ?? null,
@@ -73,9 +72,9 @@ class PromotionService
                 'rule_type' => $data['rule_type'] ?? null,
                 'rule_criteria' => $data['rule_criteria'] ?? null,
                 'is_active' => $data['is_active'] ?? true,
-                'created_by' => $createdBy
+                'created_by' => $data['created_by'] // already set in controller
             ]);
-            
+
             DB::commit();
             return $promotion;
         } catch (\Exception $e) {
@@ -87,34 +86,34 @@ class PromotionService
     /**
      * Update an existing promotion.
      */
-    
-public function updatePromotion(string $id, array $data): Promotion
-{
-    DB::beginTransaction();
-    
-    try {
-        $promotion = Promotion::find($id);
-        
-        if (!$promotion) {
-            throw new \Exception("Promotion with ID {$id} not found");
-        }
-        
-        // Ensure code is unique if being changed
-        if (isset($data['code']) && $data['code'] !== $promotion->code) {
-            if (Promotion::where('code', $data['code'])->where('id', '!=', $id)->exists()) {
-                throw new \Exception('Promotion code already exists.');
+
+    public function updatePromotion(string $id, array $data): Promotion
+    {
+        DB::beginTransaction();
+
+        try {
+            $promotion = Promotion::find($id);
+
+            if (!$promotion) {
+                throw new \Exception("Promotion with ID {$id} not found");
             }
+
+            // Ensure code is unique if being changed
+            if (isset($data['code']) && $data['code'] !== $promotion->code) {
+                if (Promotion::where('code', $data['code'])->where('id', '!=', $id)->exists()) {
+                    throw new \Exception('Promotion code already exists.');
+                }
+            }
+
+            $promotion->update($data);
+
+            DB::commit();
+            return $promotion->fresh();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw new \Exception('Failed to update promotion: ' . $e->getMessage());
         }
-        
-        $promotion->update($data);
-        
-        DB::commit();
-        return $promotion->fresh();
-    } catch (\Exception $e) {
-        DB::rollBack();
-        throw new \Exception('Failed to update promotion: ' . $e->getMessage());
     }
-}
 
     /**
      * Delete a promotion (soft delete).
@@ -122,11 +121,11 @@ public function updatePromotion(string $id, array $data): Promotion
     public function deletePromotion(string $id): bool
     {
         DB::beginTransaction();
-        
+
         try {
             $promotion = Promotion::findOrFail($id);
             $result = $promotion->delete();
-            
+
             DB::commit();
             return $result;
         } catch (\Exception $e) {
@@ -141,11 +140,11 @@ public function updatePromotion(string $id, array $data): Promotion
     public function restorePromotion(string $id): bool
     {
         DB::beginTransaction();
-        
+
         try {
             $promotion = Promotion::withTrashed()->findOrFail($id);
             $result = $promotion->restore();
-            
+
             DB::commit();
             return $result;
         } catch (\Exception $e) {
@@ -160,11 +159,11 @@ public function updatePromotion(string $id, array $data): Promotion
     public function forceDeletePromotion(string $id): bool
     {
         DB::beginTransaction();
-        
+
         try {
             $promotion = Promotion::withTrashed()->findOrFail($id);
             $result = $promotion->forceDelete();
-            
+
             DB::commit();
             return $result;
         } catch (\Exception $e) {

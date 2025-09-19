@@ -24,12 +24,7 @@ class FeedbackService
                     'status' => $data['status'] ?? 'open'
                 ]);
 
-                // Log the feedback creation
-                Log::info('Feedback created successfully', [
-                    'feedback_id' => $feedback->id,
-                    'customer_id' => $data['customer_id'],
-                    'branch_id' => $data['branch_id']
-                ]);
+            
 
                 return $feedback->load(['customer', 'branch']);
             } catch (\Exception $e) {

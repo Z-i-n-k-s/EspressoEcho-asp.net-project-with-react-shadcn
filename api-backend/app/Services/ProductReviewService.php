@@ -18,7 +18,6 @@ class ProductReviewService
                 return ProductReview::with(['customer', 'product', 'order'])
                     ->where('product_id', $productId)
                     ->where('is_visible', true)
-                    ->whereNull('removed_at')
                     ->orderBy('created_at', 'desc')
                     ->get();
             } catch (\Exception $e) {
@@ -95,9 +94,8 @@ class ProductReviewService
     {
         return DB::transaction(function () use ($id) {
             try {
-                $review = ProductReview::with(['customer', 'product', 'order', 'removedBy'])
+                return ProductReview::with(['customer', 'product', 'order'])
                     ->findOrFail($id);
-                return $review;
             } catch (\Exception $e) {
                 Log::error('Failed to retrieve product review', [
                     'error' => $e->getMessage(),
@@ -143,28 +141,81 @@ class ProductReviewService
     }
 
     /**
-     * Soft delete a review (set is_visible to false)
+     * Hard delete a review
      */
-    public function softDeleteReview(string $id): void
+    public function deleteReview(string $id): void
     {
         DB::transaction(function () use ($id) {
             try {
                 $review = ProductReview::findOrFail($id);
-                $review->update([
-                    'is_visible' => false,
-                    'removed_at' => now()
-                ]);
+                $review->delete();
 
-                Log::info('Product review soft deleted successfully', [
+                Log::info('Product review deleted successfully', [
                     'review_id' => $id
                 ]);
             } catch (\Exception $e) {
-                Log::error('Failed to soft delete product review', [
+                Log::error('Failed to delete product review', [
                     'error' => $e->getMessage(),
                     'review_id' => $id
                 ]);
                 
                 throw new \Exception('Failed to delete review: ' . $e->getMessage());
+            }
+        }, 3);
+    }
+
+    /**
+     * Hide a review (set is_visible to false)
+     */
+    public function hideReview(string $id): ProductReview
+    {
+        return DB::transaction(function () use ($id) {
+            try {
+                $review = ProductReview::findOrFail($id);
+                $review->update([
+                    'is_visible' => false
+                ]);
+
+                Log::info('Product review hidden successfully', [
+                    'review_id' => $id
+                ]);
+
+                return $review->fresh()->load(['customer', 'product', 'order']);
+            } catch (\Exception $e) {
+                Log::error('Failed to hide product review', [
+                    'error' => $e->getMessage(),
+                    'review_id' => $id
+                ]);
+                
+                throw new \Exception('Failed to hide review: ' . $e->getMessage());
+            }
+        }, 3);
+    }
+
+    /**
+     * Show a review (set is_visible to true)
+     */
+    public function showReview(string $id): ProductReview
+    {
+        return DB::transaction(function () use ($id) {
+            try {
+                $review = ProductReview::findOrFail($id);
+                $review->update([
+                    'is_visible' => true
+                ]);
+
+                Log::info('Product review shown successfully', [
+                    'review_id' => $id
+                ]);
+
+                return $review->fresh()->load(['customer', 'product', 'order']);
+            } catch (\Exception $e) {
+                Log::error('Failed to show product review', [
+                    'error' => $e->getMessage(),
+                    'review_id' => $id
+                ]);
+                
+                throw new \Exception('Failed to show review: ' . $e->getMessage());
             }
         }, 3);
     }
@@ -179,7 +230,6 @@ class ProductReviewService
                 return ProductReview::with(['customer', 'product', 'order'])
                     ->where('rating', $rating)
                     ->where('is_visible', true)
-                    ->whereNull('removed_at')
                     ->orderBy('created_at', 'desc')
                     ->get();
             } catch (\Exception $e) {
@@ -203,7 +253,6 @@ class ProductReviewService
                 return ProductReview::with(['customer', 'product', 'order'])
                     ->where('rating', '>=', 4)
                     ->where('is_visible', true)
-                    ->whereNull('removed_at')
                     ->orderBy('created_at', 'desc')
                     ->get();
             } catch (\Exception $e) {
@@ -226,7 +275,6 @@ class ProductReviewService
                 return ProductReview::with(['customer', 'product', 'order'])
                     ->where('rating', '<=', 2)
                     ->where('is_visible', true)
-                    ->whereNull('removed_at')
                     ->orderBy('created_at', 'desc')
                     ->get();
             } catch (\Exception $e) {

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class BranchInventory extends Model
 {
-    use SoftDeletes;
+    
 
     protected $table = 'branch_inventory';
     protected $primaryKey = ['branch_id', 'product_id'];
