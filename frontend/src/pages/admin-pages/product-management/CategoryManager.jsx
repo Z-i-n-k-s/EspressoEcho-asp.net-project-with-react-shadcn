@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Tag, Edit3, Trash2 } from "lucide-react";
 import categoryApi from "@/api/Catergory_api";
 import branchApi from "@/api/Branch_api";
+import { useSelector } from "react-redux";
 
 export default function CategoryManager() {
   const [categories, setCategories] = useState([]);
@@ -11,6 +12,8 @@ export default function CategoryManager() {
   const [editingId, setEditingId] = useState(null);
   const [assigningCategory, setAssigningCategory] = useState(null);
   const [selectedBranches, setSelectedBranches] = useState([]);
+   const user = useSelector((state) => state.user.user);
+  
 
   // Fetch categories
   const fetchCategories = async () => {
@@ -118,7 +121,7 @@ export default function CategoryManager() {
     try {
       const payload = {
         branch_ids: selectedBranches,
-        assigned_by: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", // temporary
+        assigned_by:  user.id,
         action: "assign",
       };
 

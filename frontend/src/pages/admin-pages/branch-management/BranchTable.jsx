@@ -1,6 +1,7 @@
 import branchApi from "@/api/Branch_api";
 import { Edit, Trash2, UserPlus } from "lucide-react";
 import React from "react";
+import { useSelector } from "react-redux";
 
 export default function BranchTable({
   branches,
@@ -13,6 +14,11 @@ export default function BranchTable({
     setEditingId(branch.id);
     setFormData(branch);
   };
+  const user = useSelector((state) => state.user.user);
+  const role = useSelector((state) => state.user.role);
+
+//console.log("user is role",role)
+console.log("user is role",user)
 
   // Delete handler
    const handleDelete = async (id) => {

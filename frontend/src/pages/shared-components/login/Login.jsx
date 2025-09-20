@@ -4,10 +4,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setUserDetails } from '@/store/userSlice';
 
 const Login = () => {
+  const user = useSelector((state) => state.user.user);
+  const role = useSelector((state) => state.user.role);
+  console.log(user)
   const [data, setData] = useState({
     email: "",
     password: "",

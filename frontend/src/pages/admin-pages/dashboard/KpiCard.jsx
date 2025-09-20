@@ -26,8 +26,11 @@ export const KpiCard = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {metrics.map((m, i) => (
-        <div className="bg-gradient-to-br from-[#fff5eb] to-[#f0d5b8] p-5 rounded-xl shadow-md border border-[#d8bfa5] hover:scale-[1.03] hover:shadow-xl transition-all duration-300">
-          <div key={i} className="flex items-center gap-4">
+        <div
+          key={i} // <-- Move key here, on the outermost div
+          className="bg-gradient-to-br from-[#fff5eb] to-[#f0d5b8] p-5 rounded-xl shadow-md border border-[#d8bfa5] hover:scale-[1.03] hover:shadow-xl transition-all duration-300"
+        >
+          <div className="flex items-center gap-4">
             <div className="text-white bg-[#8b5e3c] p-3 rounded-lg shadow-inner">
               {React.cloneElement(m.icon, { size: 22 })}
             </div>

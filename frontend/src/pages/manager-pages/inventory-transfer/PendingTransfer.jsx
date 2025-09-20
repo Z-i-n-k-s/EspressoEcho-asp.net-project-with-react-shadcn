@@ -2,15 +2,18 @@ import React, { useEffect, useState } from "react";
 import employeeApi from "@/api/Employee_api";
 import inventoryTransferApi from "@/api/Inventory_transfer_api";
 import { CheckCircle, Clock, XCircle, Check } from "lucide-react";
+import { useSelector } from "react-redux";
 
-const employeeId = "0199634d-6c12-703c-9923-9bcf317b267f";
+
 
 export default function PendingTransfer({ setStats }) {
   const [pendingTransfers, setPendingTransfers] = useState([]);
   const [managerBranch, setManagerBranch] = useState(null);
   const [loading, setLoading] = useState(true);
+   const user = useSelector((state) => state.user.user);
 
-  const tempManagerId = "0199634d-6c0c-7323-8019-0cc006242c9c";
+  const tempManagerId = user.id;
+  const employeeId = user.employee.id;
 
   useEffect(() => {
     const fetchTransfers = async () => {

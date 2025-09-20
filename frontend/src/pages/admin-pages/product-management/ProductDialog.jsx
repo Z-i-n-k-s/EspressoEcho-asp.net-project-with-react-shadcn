@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { Loader, XCircle } from "lucide-react";
 import productApi from "@/api/Product_api";
 import categoryApi from "@/api/Catergory_api";
+import { useSelector } from "react-redux";
 
 const CLOUDINARY_UPLOAD_PRESET = "coffee_shop";
 const CLOUDINARY_CLOUD_NAME = "dy5eozkhz";
@@ -66,6 +67,7 @@ export default function ProductDialog({
       }
       imageUrl = uploadedUrl;
     }
+     const user = useSelector((state) => state.user.user);
 
     const payload = {
       name: currentItem.name.trim(),
@@ -73,7 +75,7 @@ export default function ProductDialog({
       base_price: parseFloat(currentItem.base_price) || 0,
       category_id: categories.find((c) => c.name === currentItem.category)?.id,
       image_url: imageUrl,
-      created_by: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      created_by: user.id,
     };
 
     try {

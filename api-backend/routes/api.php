@@ -6,6 +6,10 @@ use App\Http\Controllers\EmployeeController;
 
 
 require __DIR__.'/auth_api.php';
+require __DIR__.'/admin_dashboard_api.php';
+require __DIR__.'/admin_monthly_report_api.php';
+require __DIR__.'/manager_dashboard_api.php';
+require __DIR__.'/daily_sales_api.php';
 require __DIR__.'/branch_api.php';
 require __DIR__.'/employee_api.php';
 require __DIR__.'/category_api.php';

@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { Building2, Edit3, Shield, Trash2 } from "lucide-react";
 import employeeApi from "@/api/Employee_api";
+import { useSelector } from "react-redux";
 
 export default function EmployeeTable({
   employees,
@@ -16,7 +17,9 @@ export default function EmployeeTable({
   setEmployees,
 }) {
   const roleLabel = (id) => roleCatalog.find((r) => r.id === id)?.label || id;
-const ADMIN_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+  const user = useSelector((state) => state.user.user);
+  const role = useSelector((state) => state.user.role);
+const ADMIN_ID = user.id;
 
   const remove =async(id) => {
     if (!confirm("Delete this employee?")) return;

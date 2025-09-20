@@ -1,9 +1,11 @@
 import promotionsApi from "@/api/Promotions_api";
 import { PlusCircle, Loader2 } from "lucide-react";
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 
 export default function PromotionForm({ newPromo, setNewPromo, setPromotions }) {
   const [loading, setLoading] = useState(false);
+   const user = useSelector((state) => state.user.user);
 
   const createPromotion = async () => {
     // Basic validation
@@ -36,7 +38,7 @@ export default function PromotionForm({ newPromo, setNewPromo, setPromotions }) 
         rule_type: newPromo.ruleType || null,
         rule_criteria: newPromo.ruleCriteria ? Number(newPromo.ruleCriteria) : null,
         is_active: newPromo.isActive ?? true,
-        created_by: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", // temp user ID
+        created_by: user.id,// temp user ID
         ...(newPromo.maxUses ? { max_uses: Number(newPromo.maxUses) } : {}),
       };
 

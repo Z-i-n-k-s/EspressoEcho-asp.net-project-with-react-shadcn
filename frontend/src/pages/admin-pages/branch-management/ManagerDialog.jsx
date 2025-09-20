@@ -1,6 +1,7 @@
 import employeeApi from "@/api/Employee_api";
 import { UserPlus, XCircle } from "lucide-react";
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 
 export default function ManagerDialog({
   initial,
@@ -16,6 +17,8 @@ export default function ManagerDialog({
     password: "",
     hire_date: "",
   });
+    const user = useSelector((state) => state.user.user);
+  const role = useSelector((state) => state.user.role);
 
   const [loading, setLoading] = useState(false); 
 
@@ -34,7 +37,7 @@ export default function ManagerDialog({
         branch_id: branchId || null,
         role: "manager",
         hire_date: draft.hire_date,
-        created_by: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", // temp until auth
+        created_by: user.id, // temp until auth
       };
 
       const newManager = await employeeApi.createEmployee(payload);

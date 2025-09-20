@@ -178,6 +178,25 @@ class PromotionController extends Controller
             ], 500);
         }
     }
+    /**
+ * Get all active promotions
+ */
+public function activePromotions(): JsonResponse
+{
+    try {
+        $promotions = $this->promotionService->getActivePromotions();
+
+        return response()->json([
+            'success' => true,
+            'data' => $promotions
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
 
     /**
      * Remove the specified promotion (soft delete).

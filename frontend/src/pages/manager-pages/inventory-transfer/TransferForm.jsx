@@ -5,11 +5,7 @@ import { ArrowRightLeft, ClipboardList } from "lucide-react";
 import branchApi from "@/api/Branch_api";
 import inventoryTransferApi from "@/api/Inventory_transfer_api";
 import employeeApi from "@/api/Employee_api";
-
-// not user id employee id from employee table
-const employeeId = "0199634d-6c12-703c-9923-9bcf317b267f";
-const userId = "0199634d-6c0c-7323-8019-0cc006242c9c";
-
+import { useSelector } from "react-redux";
 export default function TransferForm() {
   const [managerBranchId, setManagerBranchId] = useState("");
   const [fromBranches, setFromBranches] = useState([]);
@@ -20,7 +16,10 @@ export default function TransferForm() {
     quantity: "",
     reason: "",
   });
-
+ const user = useSelector((state) => state.user.user);
+// not user id employee id from employee table
+const employeeId = user.employee.id;
+const userId = user.id;
   // Fetch manager branch
   useEffect(() => {
     async function fetchManagerBranch() {

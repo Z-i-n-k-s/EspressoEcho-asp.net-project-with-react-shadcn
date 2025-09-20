@@ -6,9 +6,12 @@ import InventoryChart from "./InventoryChart";
 import branchApi from "@/api/Branch_api";
 import inventoryApi from "@/api/Inventory_api";
 import categoryApi from "@/api/Catergory_api";
+import { useSelector } from "react-redux";
 
 
 export default function InventoryManagement() {
+  const user = useSelector((state) => state.user.user);
+  const role = useSelector((state) => state.user.role);
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
@@ -16,8 +19,12 @@ export default function InventoryManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categories, setCategories] = useState([]);
   // Manual branch and employee IDs
-  const branchId = "01996313-96b7-71c2-b7fc-c2ec3d1f4844";
-  const employeeId = "01996313-3dbb-7361-aa4a-8fb6cd927423";
+  const branchId = user.employee.branch_id;
+  const employeeId = user.id
+
+
+//console.log("user is role",role)
+console.log("user is role",user)
 
   useEffect(() => {
     fetchInventory();

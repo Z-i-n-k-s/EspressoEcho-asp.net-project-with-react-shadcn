@@ -72,6 +72,11 @@ const router = createBrowserRouter([
         path: "/login",
         element: <Login />,
       },
+      {
+        path: "/logout",
+        element: <Logout />,
+      },
+      
 
       // 🔹 Admin Routes
       {
@@ -212,7 +217,7 @@ const router = createBrowserRouter([
           //     </SidebarLayout>
           //   ),
           // },
-          {
+         {
             path: "/logout",
             element: (
               <SidebarLayout>
@@ -243,7 +248,7 @@ const router = createBrowserRouter([
               </SidebarLayout>
             ),
           },
-          {
+           {
             path: "/logout",
             element: (
               <SidebarLayout>

@@ -14,6 +14,7 @@ class AuthMiddleware
     public function handle(Request $request, Closure $next)
     {
         $accessToken = $request->bearerToken();
+       //  error_log($accessToken);
 
         if (!$accessToken) {
             return response()->json([
@@ -26,6 +27,7 @@ class AuthMiddleware
         try {
             // Attempt to authenticate the user using the access token
             $user = JWTAuth::setToken($accessToken)->authenticate();
+          //   error_log($user);
 
             if (!$user) {
                 return response()->json([
@@ -37,7 +39,7 @@ class AuthMiddleware
 
             // Set the user object and userId attribute for controller usage
             $request->attributes->set('user', $user);
-            $request->attributes->set('userId', $user->UserID);
+            $request->attributes->set('userId', $user->id);
 
             return $next($request);
         } catch (TokenExpiredException $e) {

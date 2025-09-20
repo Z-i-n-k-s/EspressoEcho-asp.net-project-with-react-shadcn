@@ -9,6 +9,7 @@ Route::prefix('promotions')->group(function () {
     Route::get('/{id}', [PromotionController::class, 'show']);
     Route::put('/{id}', [PromotionController::class, 'update']);
     Route::delete('/{id}', [PromotionController::class, 'destroy']);
+    Route::get('/active', [PromotionController::class, 'activePromotions']);
     Route::post('/{id}/restore', [PromotionController::class, 'restore']);
     Route::delete('/{id}/force', [PromotionController::class, 'forceDelete']);
 });

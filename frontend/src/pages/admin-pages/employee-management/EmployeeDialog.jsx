@@ -2,6 +2,7 @@ import branchApi from "@/api/Branch_api";
 import employeeApi from "@/api/Employee_api";
 import { UserCog, UserPlus, XCircle } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 export default function EmployeeDialog({
   current,
@@ -14,6 +15,8 @@ export default function EmployeeDialog({
 }) {
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
+  const user = useSelector((state) => state.user.user);
+  const role = useSelector((state) => state.user.role);
 
   // Fetch branches once
   useEffect(() => {
@@ -66,7 +69,7 @@ export default function EmployeeDialog({
       branch_id: current.branchId,
       role: current.roles[0],
       hire_date: current.hireDate,
-      created_by: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      created_by: user.id,
     };
 
     setLoading(true);

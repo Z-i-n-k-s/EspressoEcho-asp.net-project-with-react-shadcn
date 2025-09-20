@@ -22,7 +22,7 @@ const MenuData = [
     price: 220,
   },
   {
-    id: 1,
+    id: 3,
     img: Img1,
     name: "Cheesecake Slice",
     description:

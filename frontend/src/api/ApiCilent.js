@@ -16,7 +16,7 @@ class ApiClient {
     // Separate axios instance for refreshing token (no interceptors)
     this.refreshClient = axios.create({
       baseURL,
-      withCredentials: true,
+      withCredentials: false,
       headers: {
         "Content-Type": "application/json",
       },
@@ -82,21 +82,26 @@ class ApiClient {
 
   // Call the dedicated refresh endpoint using the separate axios instance.
   async refreshAccessToken() {
-    const refreshToken = localStorage.getItem("refresh_token");
-    if (!refreshToken) {
-      throw new Error("Refresh token not available");
-    }
-    try {
-      const response = await this.refreshClient.get("api/token/refresh", {
-        headers: { "X-Refresh-Token": refreshToken },
-      });
-      const newAccessToken = response.data.access_token;
-      localStorage.setItem("access_token", newAccessToken);
-      return newAccessToken;
-    } catch (error) {
-      throw error;
-    }
+  const refreshToken = localStorage.getItem("refresh_token");
+  if (!refreshToken) {
+    throw new Error("Refresh token not available");
   }
+  try {
+    const response = await this.refreshClient.post(
+      "api/token/refresh",
+      {}, // POST body (empty)
+      {
+        headers: { "X-Refresh-Token": refreshToken },
+      }
+    );
+    const newAccessToken = response.data.access_token;
+    localStorage.setItem("access_token", newAccessToken);
+    return newAccessToken;
+  } catch (error) {
+    throw error;
+  }
+}
+
 
   async register(userData) {
     try {
@@ -116,6 +121,15 @@ class ApiClient {
       return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
+    }
+  }
+    async getUser() {
+    try {
+      const response = await this.client.get("api/me");
+
+      return response.data;
+    } catch (error) {
+      return error.response?.data || error.message;
     }
   }
 

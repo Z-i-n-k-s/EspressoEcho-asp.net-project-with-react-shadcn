@@ -9,6 +9,8 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
 use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Validator;
+
 
 class AuthController extends Controller
 {
@@ -17,12 +19,12 @@ class AuthController extends Controller
     public function __construct(AuthService $authService)
     {
         $this->authService = $authService;
-        
     }
 
     public function refreshToken(Request $request)
     {
         $refreshToken = $request->header('X-Refresh-Token');
+        error_log($refreshToken);
 
         if (!$refreshToken) {
             return response()->json(['message' => 'Refresh token not provided'], 401);
@@ -127,14 +129,18 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
-        try {
-            JWTAuth::invalidate(JWTAuth::getToken());
+        $userId = $request->attributes->get('userId');
+        error_log($userId);
+
+        $res = $this->authService->logout($userId);
+
+        if ($res) {
             return response()->json([
                 'success' => true,
                 'error'   => false,
                 'message' => 'Logged out successfully',
             ], 200);
-        } catch (JWTException $e) {
+        } else {
             return response()->json([
                 'success' => false,
                 'error'   => true,
@@ -142,6 +148,45 @@ class AuthController extends Controller
             ], 500);
         }
     }
+    public function currentUser(Request $request)
+    {
+        $userId = $request->get('userId'); // From middleware
+
+        // Validate the user_id
+        $validator = Validator::make(
+            ['user_id' => $userId],
+            ['user_id' => 'required|uuid|exists:users,id']
+        );
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'error' => true,
+                'message' => $validator->errors()->first(),
+            ], 400);
+        }
+
+        // Fetch user via AuthService
+        $user = $this->authService->getCurrentUser($userId);
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'error' => true,
+                'message' => 'User not found'
+            ], 404);
+        }
+
+        $userInfo = $this->formatUserInfo($user);
+
+        return response()->json([
+            'success' => true,
+            'error' => false,
+            'message' => 'Current user retrieved successfully',
+            'user_info' => $userInfo
+        ], 200);
+    }
+
 
     /**
      * Format user information based on role

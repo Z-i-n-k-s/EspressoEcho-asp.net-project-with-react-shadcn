@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 
 import inventoryApi from "@/api/Inventory_api";
 import categoryApi from "@/api/Catergory_api";
+import { useSelector } from "react-redux";
 
 export default function InventoryDialog({ setShowDialog, setInventory }) {
   const [products, setProducts] = useState([]);
@@ -14,9 +15,11 @@ export default function InventoryDialog({ setShowDialog, setInventory }) {
   const [quantity, setQuantity] = useState(0);
   const [reorderLevel, setReorderLevel] = useState(0);
   const [reason, setReason] = useState("");
+   const user = useSelector((state) => state.user.user);
+   console.log(user)
 
-  const branchId = "01996313-96b7-71c2-b7fc-c2ec3d1f4844";
-  const employeeId = "01996313-3dbb-7361-aa4a-8fb6cd927423";
+  const branchId = user.employee.branch_id;
+  const employeeId = user.id;
 
   // Fetch products by branch categories
   useEffect(() => {

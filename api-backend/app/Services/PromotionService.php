@@ -82,6 +82,25 @@ class PromotionService
             throw new \Exception('Failed to create promotion: ' . $e->getMessage());
         }
     }
+    // In PromotionService.php
+
+/**
+ * Get all active promotions (where is_active is true and current date is within validity period).
+ */
+public function getActivePromotions(): Collection
+{
+    try {
+        $currentDate = now()->toDateString();
+        
+        return Promotion::where('is_active', true)
+            ->whereDate('valid_from', '<=', $currentDate)
+            ->whereDate('valid_to', '>=', $currentDate)
+            ->orderBy('created_at', 'desc')
+            ->get();
+    } catch (\Exception $e) {
+        throw new \Exception('Failed to retrieve active promotions: ' . $e->getMessage());
+    }
+}
 
     /**
      * Update an existing promotion.
