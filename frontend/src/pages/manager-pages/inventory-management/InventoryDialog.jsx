@@ -1,7 +1,8 @@
 import { XCircle } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import productApi from "@/api/Product_api";
+
 import inventoryApi from "@/api/Inventory_api";
+import categoryApi from "@/api/Catergory_api";
 
 export default function InventoryDialog({ setShowDialog, setInventory }) {
   const [products, setProducts] = useState([]);
@@ -14,29 +15,32 @@ export default function InventoryDialog({ setShowDialog, setInventory }) {
   const [reorderLevel, setReorderLevel] = useState(0);
   const [reason, setReason] = useState("");
 
-  const branchId = "019952e5-0100-7162-917e-9e66e0ef527b";
-  const employeeId = "019952e6-1409-707a-9c6b-52413b059b8b";
+  const branchId = "01996313-96b7-71c2-b7fc-c2ec3d1f4844";
+  const employeeId = "01996313-3dbb-7361-aa4a-8fb6cd927423";
 
-  // Fetch products
+  // Fetch products by branch categories
   useEffect(() => {
-    const fetchProducts = async () => {
-      setLoadingProducts(true);
-      try {
-        const res = await productApi.getAllProducts();
-        const data = Array.isArray(res)
-          ? res
-          : Array.isArray(res?.data)
-          ? res.data
-          : [];
-        setProducts(data);
-      } catch (err) {
-        console.error("Error fetching products:", err);
-        setProducts([]);
-      }
-      setLoadingProducts(false);
-    };
-    fetchProducts();
-  }, []);
+  const fetchProducts = async () => {
+    setLoadingProducts(true);
+    try {
+      const res = await categoryApi.getByBranch(branchId);
+      const categories = res.success ? res.data : [];
+      const branchProducts = categories.flatMap((cat) =>
+        (cat.products || []).map((p) => ({
+          ...p,
+          categoryName: cat.name,
+        }))
+      );
+      setProducts(branchProducts);
+    } catch (err) {
+      console.error("Error fetching branch products:", err);
+      setProducts([]);
+    }
+    setLoadingProducts(false);
+  };
+  fetchProducts();
+}, [branchId]);
+
 
   const toggleSelectProduct = (product) => {
     if (selectedProducts.find((p) => p.id === product.id)) {
@@ -66,7 +70,7 @@ export default function InventoryDialog({ setShowDialog, setInventory }) {
 
       setInventory((prev) => [...prev, ...savedItems]);
       setShowDialog(false);
-       window.location.reload();
+      window.location.reload();
     } catch (err) {
       console.error("Error saving inventory adjustment:", err);
       alert("Failed to save adjustments. Please try again.");
@@ -119,7 +123,7 @@ export default function InventoryDialog({ setShowDialog, setInventory }) {
                       }`}
                     >
                       <td className="p-3 border">{p.name}</td>
-                      <td className="p-3 border">{p.category?.name || "—"}</td>
+                      <td className="p-3 border">{p.categoryName || "—"}</td>
                       <td className="p-3 border">৳{p.base_price}</td>
                       <td className="p-3 border">
                         <img

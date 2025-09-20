@@ -71,19 +71,19 @@ class EmployeeService
                 $existingManager = Employee::where('user_id', $data['user_id'] ?? null)
                     ->where('role', 'manager')
                     ->exists();
-                    
+
                 if ($existingManager) {
                     throw ValidationException::withMessages([
                         'role' => 'This user is already a manager at another branch.'
                     ]);
                 }
-                
+
                 // Check if the branch already has a manager
                 if (!empty($data['branch_id'])) {
                     $branchHasManager = Branch::where('id', $data['branch_id'])
                         ->whereNotNull('manager_id')
                         ->exists();
-                        
+
                     if ($branchHasManager) {
                         throw ValidationException::withMessages([
                             'branch_id' => 'This branch already has a manager assigned.'
@@ -157,29 +157,31 @@ class EmployeeService
             }
 
             // Check manager assignment constraints
-            if (isset($data['role']) && $data['role'] === 'manager' || 
-                (!isset($data['role']) && $oldRole === 'manager' && isset($data['branch_id']))) {
-                
+            if (
+                isset($data['role']) && $data['role'] === 'manager' ||
+                (!isset($data['role']) && $oldRole === 'manager' && isset($data['branch_id']))
+            ) {
+
                 $newBranchId = $data['branch_id'] ?? $oldBranchId;
-                
+
                 // Check if this user is already a manager at another branch
                 $existingManager = Employee::where('user_id', $employee->user_id)
                     ->where('role', 'manager')
                     ->where('id', '!=', $id)
                     ->exists();
-                    
+
                 if ($existingManager) {
                     throw ValidationException::withMessages([
                         'role' => 'This user is already a manager at another branch.'
                     ]);
                 }
-                
+
                 // Check if the branch already has a manager (if changing branch)
                 if (!empty($newBranchId) && $newBranchId !== $oldBranchId) {
                     $branchHasManager = Branch::where('id', $newBranchId)
                         ->whereNotNull('manager_id')
                         ->exists();
-                        
+
                     if ($branchHasManager) {
                         throw ValidationException::withMessages([
                             'branch_id' => 'This branch already has a manager assigned.'
@@ -234,7 +236,7 @@ class EmployeeService
                         ->where('manager_id', $employee->user_id)
                         ->update(['manager_id' => null]);
                 }
-                
+
                 if ($oldRole === 'manager' && !empty($data['branch_id'])) {
                     // Add to new branch
                     Branch::where('id', $data['branch_id'])
@@ -253,7 +255,9 @@ class EmployeeService
     {
         return DB::transaction(function () use ($id) {
             $employee = Employee::findOrFail($id);
-            $userId = $employee->user_id;
+            $userId   = $employee->user_id;
+
+            error_log('UserId: ' . $userId . ' Employee: ' . json_encode($employee->toArray()));
 
             // 1. If employee is a manager, remove from branch
             if ($employee->role === 'manager' && $employee->branch_id) {
@@ -262,64 +266,49 @@ class EmployeeService
                     ->update(['manager_id' => null]);
             }
 
-            // 2. Remove employee-specific roles
-            $employeeRoleIds = DB::table('roles')
-                ->whereIn('name', ['manager', 'cashier', 'staff'])
-                ->pluck('id');
-
-            if ($employeeRoleIds->isNotEmpty()) {
-                DB::table('user_roles')
-                    ->where('user_id', $userId)
-                    ->whereIn('role_id', $employeeRoleIds)
-                    ->delete();
-            }
-
-            // 3. Handle records where employee is referenced
-            // Inventory transfers
+            // 2. Handle records where employee is referenced
             InventoryTransfer::where('requested_by', $id)->update(['requested_by' => null]);
             InventoryTransfer::where('approved_by', $id)->update(['approved_by' => null]);
             InventoryTransfer::where('received_by', $id)->update(['received_by' => null]);
-
-            // Orders
             Order::where('handled_by', $id)->update(['handled_by' => null]);
-
-            // Offline orders
             OfflineOrder::where('cashier_id', $id)->update(['cashier_id' => null]);
-
-            // Payments
             Payment::where('collected_by', $id)->update(['collected_by' => null]);
-
-            // Delivery assignments
             DeliveryAssignment::where('staff_id', $id)->update(['staff_id' => null]);
             DeliveryAssignment::where('assigned_by', $id)->update(['assigned_by' => null]);
-
-            // Inventory adjustments
             InventoryAdjustment::where('last_updated_by', $id)->update(['last_updated_by' => null]);
-
-            // Branch announcements
             BranchAnnouncement::where('created_by', $userId)->update(['created_by' => null]);
-
-            // Branch inventory
             DB::table('branch_inventory')
                 ->where('last_updated_by', $id)
                 ->update(['last_updated_by' => null]);
 
-            // 4. Delete the employee
-            $deleted = $employee->delete();
+            // 3. Remove employee-specific roles (manager, cashier, staff)
+            $employeeRoleIds = DB::table('roles')
+                ->whereIn('name', ['manager', 'cashier', 'staff'])
+                ->pluck('id');
 
-            // 5. Delete the related user as well
-            if ($deleted) {
-                // Check if user has other roles before deleting
-                $hasOtherRoles = DB::table('user_roles')
+            error_log('Role IDs: ' . json_encode($employeeRoleIds));
+
+            if ($employeeRoleIds->isNotEmpty()) {
+                $deletedRoles = DB::table('user_roles')
                     ->where('user_id', $userId)
-                    ->exists();
-                    
-                if (!$hasOtherRoles) {
-                    DB::table('users')->where('id', $userId)->delete();
-                }
+                    ->whereIn('role_id', $employeeRoleIds)
+                    ->delete();
+
+                error_log("Deleted Roles Count: $deletedRoles");
             }
 
-            return $deleted;
+            // 4. Always delete user (regardless of other roles)
+            $deletedUserRoles = DB::table('user_roles')->where('user_id', $userId)->delete();
+            error_log("Deleted All User Roles: $deletedUserRoles");
+
+            $deletedUser = DB::table('users')->where('id', $userId)->delete();
+            error_log("Deleted User: $deletedUser");
+
+            // 5. Finally delete the employee
+            $deletedEmployee = $employee->delete();
+            error_log("Deleted Employee: " . ($deletedEmployee ? 'true' : 'false'));
+
+            return $deletedEmployee;
         });
     }
 }

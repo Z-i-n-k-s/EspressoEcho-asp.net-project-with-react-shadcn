@@ -90,6 +90,7 @@ export default function EmployeeDialog({
       );
 
       setShowDialog(false);
+      window.location.reload();
     } catch (err) {
       console.error("Error saving employee:", err, err.response?.data);
       alert("Failed to save employee. Please try again.");

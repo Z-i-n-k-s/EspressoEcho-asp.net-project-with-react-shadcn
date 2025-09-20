@@ -42,7 +42,7 @@ export const sidebarMenus = {
     { icon: Shuffle, label: "Inventory Transfer", path: "/manager-panel/transfer" },
     { icon: ClipboardList, label: "Daily Report", path: "/manager-panel/reports" },
     { icon: Users, label: "Employee Performance", path: "/manager-panel/employees" },
-    { icon: MessageSquare, label: "Customer Feedback", path: "/manager-panel/feedback" },
+   // { icon: MessageSquare, label: "Customer Feedback", path: "/manager-panel/feedback" },
     { icon: LogOut, label: "Logout", path: "/logout" },
   ],
 

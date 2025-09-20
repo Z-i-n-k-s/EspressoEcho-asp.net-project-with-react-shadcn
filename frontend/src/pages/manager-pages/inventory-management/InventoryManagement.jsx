@@ -5,7 +5,7 @@ import InventoryActions from "./InventoryActions";
 import InventoryChart from "./InventoryChart";
 import branchApi from "@/api/Branch_api";
 import inventoryApi from "@/api/Inventory_api";
-import productApi from "@/api/Product_api";
+import categoryApi from "@/api/Catergory_api";
 
 
 export default function InventoryManagement() {
@@ -16,8 +16,8 @@ export default function InventoryManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categories, setCategories] = useState([]);
   // Manual branch and employee IDs
-  const branchId = "019952e5-0100-7162-917e-9e66e0ef527b";
-  const employeeId = "019952e6-1409-707a-9c6b-52413b059b8b";
+  const branchId = "01996313-96b7-71c2-b7fc-c2ec3d1f4844";
+  const employeeId = "01996313-3dbb-7361-aa4a-8fb6cd927423";
 
   useEffect(() => {
     fetchInventory();
@@ -26,25 +26,33 @@ export default function InventoryManagement() {
   const fetchInventory = async () => {
   setLoading(true);
   try {
-    // fetch branch inventory
-    const branchInventoryRes = await branchApi.getInventoryByBranch(branchId); 
+    //  Fetch branch inventory
+    const branchInventoryRes = await branchApi.getInventoryByBranch(branchId);
     const inventoryData = branchInventoryRes.data || [];
 
-    // fetch all products
-    const productsRes = await productApi.getAllProducts();
-    const products = productsRes.data || [];
+    //  Fetch categories assigned to this branch
+    const categoryRes = await categoryApi.getByBranch(branchId);
+    const branchCategories = categoryRes.success ? categoryRes.data : [];
 
-     const uniqueCategories = [
-      ...new Set(products.map(p => p.category?.name).filter(Boolean))
-    ];
+    //  Flatten all products under these categories
+    const branchProducts = branchCategories.flatMap(cat =>
+      (cat.products || []).map(p => ({
+        ...p,
+        categoryName: cat.name,
+      }))
+    );
+
+    // Build unique category list for dropdown
+    const uniqueCategories = [...new Set(branchProducts.map(p => p.categoryName))];
     setCategories(uniqueCategories);
-    // merge product info into inventory
-    const mergedInventory = inventoryData.map((inv) => {
-      const product = products.find(p => p.id === inv.product_id) || {};
+
+    //  Merge inventory data with branchProducts info
+    const mergedInventory = inventoryData.map(inv => {
+      const product = branchProducts.find(p => p.id === inv.product_id) || {};
       return {
         id: inv.product_id,
-        item: inv.product_name,
-        category: product.category?.name || "—",
+        item: product.name || inv.product_name,
+        category: product.categoryName || "—",
         quantity: inv.quantity_on_hand,
         reorderLevel: inv.reorder_level,
         basePrice: product.base_price || 0,
@@ -55,11 +63,12 @@ export default function InventoryManagement() {
   } catch (error) {
     console.error("Error fetching inventory:", error);
     setInventory([]);
-     setCategories([]);
+    setCategories([]);
   } finally {
     setLoading(false);
   }
 };
+
 
   // Filtered inventory for search + category
   const filteredInventory = inventory.filter((item) => {

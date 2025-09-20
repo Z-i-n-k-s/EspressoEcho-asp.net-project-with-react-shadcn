@@ -142,4 +142,35 @@ class InventoryController extends Controller
             ], 500);
         }
     }
+    /**
+     * Get inventory for a specific branch
+     */
+    public function getInventory(Request $request, string $branchId)
+    {
+        $validator = Validator::make(
+            ['branch_id' => $branchId],
+            ['branch_id' => 'required|exists:branches,id']
+        );
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $inventory = $this->inventoryService->getBranchInventory($branchId);
+
+            return response()->json([
+                'message' => 'Branch inventory retrieved successfully',
+                'data'    => $inventory
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to retrieve branch inventory',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
 }

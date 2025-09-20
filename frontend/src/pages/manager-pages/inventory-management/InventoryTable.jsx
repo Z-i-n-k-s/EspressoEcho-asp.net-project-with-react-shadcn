@@ -1,4 +1,4 @@
-import { Minus, MinusCircle, Plus, PlusCircle, PlusCircleIcon } from "lucide-react";
+import { MinusCircle, PlusCircle } from "lucide-react";
 
 export default function InventoryTable({
   loading,
@@ -30,46 +30,52 @@ export default function InventoryTable({
                 <th className="p-3 text-center">Quantity On Hand</th>
                 <th className="p-3 text-center">Reorder Level</th>
                 <th className="p-3 text-center">Price</th>
+                <th className="p-3 text-center">Status</th>
                 <th className="p-3 text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredInventory.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="p-4 text-center text-[#5c4033] italic">
+                  <td colSpan="7" className="p-4 text-center text-[#5c4033] italic">
                     No inventory data
                   </td>
                 </tr>
               ) : (
-                filteredInventory.map((inv, idx) => (
-                  <tr
-                    key={inv.id}
-                    className={`border-b border-[#e7dcd3] last:border-b-0 hover:bg-[#f5ebe0] transition ${
-                      idx % 2 === 0 ? "bg-[#fcf9f6]" : "bg-white"
-                    }`}
-                  >
-                    <td className="p-3 font-medium text-center">{inv.item}</td>
-                    <td className="p-3 text-center">{inv.category}</td>
-                    <td className="p-3 text-center">{inv.quantity}</td>
-                    <td className="p-3 text-center">{inv.reorderLevel}</td>
-                    <td className="p-3 text-center">৳{inv.basePrice}</td>
-                    <td className="p-3 flex justify-center gap-3">
-                      <button
-                        onClick={() => updateStock(inv.id, "add")}
-                        className="bg-green-100 hover:bg-green-200 text-green-700 p-2 rounded-full"
-                      >
-                        <PlusCircle size={16} />
-                      </button>
-                      <button
-                        onClick={() => updateStock(inv.id, "remove")}
-                        className="bg-red-100 hover:bg-red-200 text-red-700 p-2 rounded-full"
-                      >
-                        <MinusCircle size={16} />
-                      </button>
-                      
-                    </td>
-                  </tr>
-                ))
+                filteredInventory.map((inv, idx) => {
+                  const isLowStock = inv.quantity <= inv.reorderLevel;
+                  return (
+                    <tr
+                      key={inv.id}
+                      className={`border-b border-[#e7dcd3] last:border-b-0 hover:bg-[#f5ebe0] transition ${
+                        idx % 2 === 0 ? "bg-[#fcf9f6]" : "bg-white"
+                      }`}
+                    >
+                      <td className="p-3 font-medium text-center">{inv.item}</td>
+                      <td className="p-3 text-center">{inv.category}</td>
+                      <td className="p-3 text-center">{inv.quantity}</td>
+                      <td className="p-3 text-center">{inv.reorderLevel}</td>
+                      <td className="p-3 text-center">৳{inv.basePrice}</td>
+                      <td className={`p-3 text-center font-bold ${isLowStock ? "text-red-600" : "text-green-600"}`}>
+                        {isLowStock ? "Low Stock" : "OK"}
+                      </td>
+                      <td className="p-3 flex justify-center gap-3">
+                        <button
+                          onClick={() => updateStock(inv.id, "add")}
+                          className="bg-green-100 hover:bg-green-200 text-green-700 p-2 rounded-full"
+                        >
+                          <PlusCircle size={16} />
+                        </button>
+                        <button
+                          onClick={() => updateStock(inv.id, "remove")}
+                          className="bg-red-100 hover:bg-red-200 text-red-700 p-2 rounded-full"
+                        >
+                          <MinusCircle size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

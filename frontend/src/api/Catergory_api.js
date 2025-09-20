@@ -31,7 +31,11 @@ const categoryApi = {
     const res = await apiClient.client.put(`/api/categories/${id}`, data);
     return res.data;
   },
-
+  // Get categories by branch ID
+async getByBranch(branchId) {
+    const res = await apiClient.client.get(`/api/categories/branches/${branchId}`);
+    return res.data;
+  },
   // Delete category
   async deleteCategory(id) {
     const res = await apiClient.client.delete(`/api/categories/${id}`);
