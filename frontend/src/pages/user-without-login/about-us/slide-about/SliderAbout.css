@@ -1,33 +1,49 @@
+/* SliderAbout.css */
 .slider-about-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  top: 0;
+  min-height: 70vh;
 }
 
 .slider-wrapper {
   display: flex;
-  gap: 0.15rem;
+  gap: 0.5rem;
   padding: 0;
   width: 90%;
-  height: 70vmin;
-  margin-top: 10;
+  height: 60vmin;
+  margin: 0 auto;
 }
 
 .slider-item {
   flex: 1;
-  cursor: pointer;
   overflow: hidden;
-  transition: flex 0.75s ease-in-out;
+  border-radius: 8px;
+  transition: all 0.5s ease-in-out;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+.slider-item.active {
+  flex: 5;
+  opacity: 1;
 }
 
 .slider-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.5s ease;
 }
 
-.slider-item.active {
-  flex: 5;
+.slider-item.active img {
+  transform: scale(1.02);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .slider-wrapper {
+    height: 40vmin;
+    gap: 0.3rem;
+  }
 }

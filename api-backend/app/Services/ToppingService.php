@@ -10,12 +10,12 @@ class ToppingService
 {
     public function getAllToppings()
     {
-        return Topping::with('creator')->orderBy('name')->get();
+          return Topping::with(['creator', 'products'])->orderBy('name')->get();
     }
 
     public function getToppingById(string $id): Topping
     {
-        return Topping::with('creator')->findOrFail($id);
+        return Topping::with(['creator', 'products'])->findOrFail($id);
     }
 
     public function createTopping(array $data): Topping

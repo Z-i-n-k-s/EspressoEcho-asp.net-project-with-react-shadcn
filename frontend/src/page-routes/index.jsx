@@ -220,14 +220,6 @@ const router = createBrowserRouter([
               </SidebarLayout>
             ),
           },
-          // {
-          //   path: "manager-panel/feedback",
-          //   element: (
-          //     <SidebarLayout>
-          //       <CustomerFeedback />
-          //     </SidebarLayout>
-          //   ),
-          // },
          {
             path: "/logout",
             element: (

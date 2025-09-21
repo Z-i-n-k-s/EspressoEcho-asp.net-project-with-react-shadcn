@@ -1,4 +1,3 @@
-// Logout.js
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { clearUser } from "@/store/userSlice";
@@ -31,15 +30,20 @@ const Logout = () => {
 
           toast.success("Logged out successfully", { position: "top-center" });
 
-          navigate("/"); // redirect
+          // Redirect to landing page after successful logout
+          navigate("/", { replace: true });
         } else {
           toast.error(response?.message || "Logout failed!", { position: "top-center" });
-         // navigate("/"); // still redirect
+          // Still redirect to landing page even if API call fails
+          navigate("/", { replace: true });
         }
       } catch (error) {
         const errorMessage = error.response?.data?.message || "Something went wrong!";
         toast.error(errorMessage, { position: "top-center" });
-       // navigate("/");
+        // Redirect to landing page on error
+        navigate("/", { replace: true });
+      } finally {
+        setIsLoggingOut(false);
       }
     };
 
@@ -47,8 +51,11 @@ const Logout = () => {
   }, [dispatch, navigate, isLoggingOut]);
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <p>Logging out...</p>
+    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-amber-50 via-[#f8f1e5] to-[#efe0cc]">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#6d4c41] mx-auto mb-4"></div>
+        <p className="text-[#5d4037] font-medium">Logging out...</p>
+      </div>
     </div>
   );
 };

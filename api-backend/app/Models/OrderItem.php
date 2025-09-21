@@ -14,6 +14,7 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'product_id',
+        'topping_id',
         'quantity',
         'unit_price',
         'total_price',
@@ -36,6 +37,11 @@ class OrderItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function topping(): BelongsTo
+    {
+        return $this->belongsTo(Topping::class);
     }
 
     // Mutators

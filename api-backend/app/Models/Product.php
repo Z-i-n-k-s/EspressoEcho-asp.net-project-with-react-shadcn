@@ -5,11 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-
 
 class Product extends Model
 {
@@ -29,6 +27,9 @@ class Product extends Model
         'base_price' => 'decimal:2',
         'is_active' => 'boolean',
     ];
+
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     /**
      * Get the category that owns the product.
@@ -57,11 +58,11 @@ class Product extends Model
     }
 
     /**
-     * Get the branch inventory records for the product.
+     * Get the order items for the product.
      */
-    public function branchInventories(): HasMany
+    public function orderItems(): HasMany
     {
-        return $this->hasMany(BranchInventory::class);
+        return $this->hasMany(OrderItem::class);
     }
 
     /**
