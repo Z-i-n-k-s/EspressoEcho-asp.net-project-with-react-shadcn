@@ -1,5 +1,3 @@
-// src/pages/manager-pages/inventory-transfer/TransferForm.jsx
-
 import React, { useEffect, useState } from "react";
 import { ArrowRightLeft, ClipboardList } from "lucide-react";
 import branchApi from "@/api/Branch_api";

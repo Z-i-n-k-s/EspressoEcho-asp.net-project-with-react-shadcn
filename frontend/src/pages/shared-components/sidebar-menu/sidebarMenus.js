@@ -18,6 +18,7 @@ import {
   LogOut,
   Zap,
   BarChart3,
+  SquarePlus,
 } from "lucide-react";
 
 import ROLE from "@/lib/roles";
@@ -27,6 +28,7 @@ export const sidebarMenus = {
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin-panel/admin-dashboard" },
     { icon: Building2, label: "Branch Management", path: "/admin-panel/branches" },
     { icon: Package, label: "Product Management", path: "/admin-panel/products" },
+    { icon: SquarePlus, label: "Toppings Management", path: "/admin-panel/toppings" },
     { icon: Megaphone, label: "Announcements", path: "/admin-panel/announcements" },
     { icon: Users, label: "Employee Management", path: "/admin-panel/employees" },
     { icon: ClipboardList, label: "Reports", path: "/admin-panel/reports" },

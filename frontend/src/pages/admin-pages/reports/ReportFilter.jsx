@@ -10,7 +10,7 @@ export default function ReportFilter({ branch, setBranch, month, setMonth, branc
   const handleDateChange = (date) => {
     const year = date.getFullYear();
     const monthNum = String(date.getMonth() + 1).padStart(2, '0');
-    setMonth(`${year}-${monthNum}`); // keep same YYYY-MM format
+    setMonth(`${year}-${monthNum}`); 
   };
 
   return (

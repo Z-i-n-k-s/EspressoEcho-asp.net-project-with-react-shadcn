@@ -102,13 +102,13 @@ class EmployeeService
             ]);
 
             // 2. Assign customer role to the user
-            $customerRoleId = DB::table('roles')->where('name', 'customer')->value('id');
-            if ($customerRoleId) {
-                DB::table('user_roles')->insert([
-                    'user_id' => $user->id,
-                    'role_id' => $customerRoleId
-                ]);
-            }
+            // $customerRoleId = DB::table('roles')->where('name', 'customer')->value('id');
+            // if ($customerRoleId) {
+            //     DB::table('user_roles')->insert([
+            //         'user_id' => $user->id,
+            //         'role_id' => $customerRoleId
+            //     ]);
+            // }
 
             // 3. Create employee linked to that user
             $employee = Employee::create([

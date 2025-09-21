@@ -1,11 +1,6 @@
-import { Calendar, TrendingUp } from 'lucide-react'
+import { Calendar, TrendingUp } from "lucide-react";
 
 export default function DailySummary({ dailyData }) {
-  const total = dailyData
-    ? dailyData.totalSales + dailyData.totalProfit
-    : 0
-  const salesPercentage = total ? ((dailyData.totalSales / total) * 100).toFixed(1) : 0
-
   return (
     <div className="bg-[#fff8f1] rounded-xl shadow p-6 mb-6">
       <div className="flex items-center justify-between mb-4">
@@ -35,9 +30,9 @@ export default function DailySummary({ dailyData }) {
             </p>
           </div>
           <div className="bg-white rounded-lg p-4 shadow-sm">
-            <p className="text-sm text-gray-600 mb-1">Tota Sales in %</p>
+            <p className="text-sm text-gray-600 mb-1">Sales vs Target</p>
             <p className="text-lg font-bold text-orange-600">
-              {salesPercentage}%
+              {dailyData.salesPercentage}%
             </p>
           </div>
         </div>
@@ -45,5 +40,5 @@ export default function DailySummary({ dailyData }) {
         <p className="text-gray-500">Select a date to view details</p>
       )}
     </div>
-  )
+  );
 }

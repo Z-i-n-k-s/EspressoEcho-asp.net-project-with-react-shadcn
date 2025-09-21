@@ -230,4 +230,44 @@ class ToppingController extends Controller
             ], 500);
         }
     }
+     public function getToppingsByProductId(string $productId): JsonResponse
+{
+    try {
+        $toppings = $this->toppingService->getToppingsByProduct($productId);
+
+        return response()->json([
+            'success' => true,
+            'data' => $toppings,
+            'message' => 'Toppings retrieved for product successfully'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to get toppings for product',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+    /**
+ * Get all products assigned to a topping
+ */
+public function getProducts(string $toppingId): JsonResponse
+{
+    try {
+        $products = $this->toppingService->getProductsByTopping($toppingId);
+        return response()->json([
+            'success' => true,
+            'data' => $products,
+            'message' => 'Products retrieved successfully for this topping'
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to fetch products for topping',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
 }

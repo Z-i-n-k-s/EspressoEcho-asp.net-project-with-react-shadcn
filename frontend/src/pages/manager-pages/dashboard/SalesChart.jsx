@@ -1,40 +1,14 @@
-import { useEffect, useState } from "react";
-
 import {
-    Area,
-    AreaChart,
-    CartesianGrid,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
 
-export const SalesChart = () => {
-  const [salesData, setSalesData] = useState([]);
-  useEffect(() => {
-    fetchSalesData();
-  }, []);
-
-  const fetchSalesData = async () => {
-    try {
-      // const res = await fetch("/api/dashboard/sales");
-      // const data = await res.json();
-      const data = [
-        { day: "Mon", sales: 320 },
-        { day: "Tue", sales: 450 },
-        { day: "Wed", sales: 390 },
-        { day: "Thu", sales: 510 },
-        { day: "Fri", sales: 680 },
-        { day: "Sat", sales: 860 },
-        { day: "Sun", sales: 730 },
-      ];
-      setSalesData(data);
-    } catch (error) {
-      console.error("Error fetching sales data:", error);
-    }
-  };
-
+export const SalesChart = ({ data }) => {
   return (
     <div className="bg-[#fffaf5] p-6 rounded-2xl shadow-lg border border-[#e7dcd3] h-73">
       <h2 className="text-lg font-semibold text-[#5c4033] mb-3">
@@ -43,7 +17,7 @@ export const SalesChart = () => {
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
-            data={salesData}
+            data={data}
             margin={{ top: 10, right: 20, left: -10, bottom: 0 }}
           >
             <defs>

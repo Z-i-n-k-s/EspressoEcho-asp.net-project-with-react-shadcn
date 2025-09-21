@@ -11,7 +11,7 @@ import { useSelector } from "react-redux";
 
 export default function InventoryManagement() {
   const user = useSelector((state) => state.user.user);
-  const role = useSelector((state) => state.user.role);
+ // const role = useSelector((state) => state.user.role);
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showDialog, setShowDialog] = useState(false);

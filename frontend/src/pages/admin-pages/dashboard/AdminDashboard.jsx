@@ -1,23 +1,24 @@
 import React, { useEffect, useState } from "react";
-
 import { KpiCard } from "./KpiCard";
 import { SalesChart } from "./SalesChart";
 import { Alerts } from "./Alerts";
 import { BranchTable } from "./BranchTable";
+import adminDashboardApi from "@/api/admin_dashboard_api";
+
 
 export const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState(null);
 
   useEffect(() => {
     loadDashboardData();
   }, []);
 
-  // Load all dashboard data in parallel
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800));//simulate api delay show loading
-
+      const data = await adminDashboardApi.getDashboard();
+      setDashboardData(data);
     } catch (error) {
       console.error("Error loading admin dashboard:", error);
     } finally {
@@ -32,34 +33,24 @@ export const AdminDashboard = () => {
       </h1>
 
       {loading ? (
-      
-<div className="flex items-center justify-center py-12">
+        <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6b4226]"></div>
           <span className="ml-3 text-[#6b4226] font-semibold">
-            Loading branches...
+            Loading dashboard...
           </span>
         </div>
       ) : (
         <>
-        
-          {/* KPI Cards */}
-          <KpiCard />
-
-          {/* Sales Overview + Alerts */}
+          <KpiCard metrics={dashboardData} />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
-            {/*Sales Bar Chart */}
-            <div className="lg:col-span-2 ">
+            <div className="lg:col-span-2">
               <SalesChart />
             </div>
-
-            {/* Alerts */}
-            <Alerts />
+            <Alerts alerts={dashboardData?.priority_alerts} />
           </div>
-
-          {/* Branch Table */}
-          <BranchTable />
+          <BranchTable branches={dashboardData?.branch_overview} />
         </>
-       )} 
+      )}
     </div>
   );
 };

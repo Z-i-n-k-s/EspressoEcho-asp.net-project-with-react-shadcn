@@ -22,6 +22,7 @@ class FeedbackReply extends Model
     protected $casts = [
         'replied_at' => 'datetime',
     ];
+  public $timestamps = false;
 
     // Relationships
     public function feedback(): BelongsTo

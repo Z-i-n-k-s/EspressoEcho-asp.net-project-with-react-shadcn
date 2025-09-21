@@ -4,17 +4,16 @@ import inventoryTransferApi from "@/api/Inventory_transfer_api";
 import { CheckCircle, Clock, XCircle, Check } from "lucide-react";
 import { useSelector } from "react-redux";
 
-
-
 export default function PendingTransfer({ setStats }) {
   const [pendingTransfers, setPendingTransfers] = useState([]);
   const [managerBranch, setManagerBranch] = useState(null);
   const [loading, setLoading] = useState(true);
-   const user = useSelector((state) => state.user.user);
+  const user = useSelector((state) => state.user.user);
 
   const tempManagerId = user.id;
   const employeeId = user.employee.id;
 
+  // fetch transfers
   useEffect(() => {
     const fetchTransfers = async () => {
       try {
@@ -29,26 +28,38 @@ export default function PendingTransfer({ setStats }) {
         const response = await inventoryTransferApi.listTransfers();
         const allTransfers = response.data?.data || [];
 
-        // Only show pending or approved transfers for this branch not created by this employee
-        const incoming = allTransfers.filter((t) => {
+        const filtered = allTransfers.filter((t) => {
           if (t.status === "pending") {
-            // show for from branch manager
             return (
               t.from_branch_id === emp.branch_id &&
               t.requested_by !== employeeId
             );
           }
           if (t.status === "approved") {
-            // show for to branch manager
             return t.to_branch_id === emp.branch_id;
           }
           return false;
         });
 
-        setPendingTransfers(incoming);
+        // fetch items for each transfer
+        const transfersWithItems = await Promise.all(
+          filtered.map(async (t) => {
+            try {
+              const detailsRes = await inventoryTransferApi.getTransfer(t.id);
+              console.log("Transfer details for", t.id, detailsRes.data.items);
+              return { ...t, items: detailsRes.data?.items || [] };
+            } catch (err) {
+              console.error(`Error fetching items for transfer ${t.id}:`, err);
+              return { ...t, items: [] };
+            }
+          })
+        );
+
+        setPendingTransfers(transfersWithItems);
         setStats((prev) => ({
           ...prev,
-          pending: incoming.filter((t) => t.status === "pending").length,
+          pending: transfersWithItems.filter((t) => t.status === "pending")
+            .length,
         }));
       } catch (err) {
         console.error("Error fetching pending transfers:", err);
@@ -58,20 +69,13 @@ export default function PendingTransfer({ setStats }) {
     };
 
     fetchTransfers();
-  }, [setStats]);
+  }, [setStats, employeeId]);
 
+  // actions
   const handleApprove = async (id) => {
     try {
       await inventoryTransferApi.approveTransfer(id, tempManagerId);
-      setPendingTransfers((prev) =>
-        prev.map((t) => (t.id === id ? { ...t, status: "approved" } : t))
-      );
-      setStats((prev) => ({
-        ...prev,
-        pending: prev.pending - 1,
-        approved: prev.approved + 1,
-      }));
-      alert("Transfer approved successfully!");
+      window.location.reload(); 
     } catch (err) {
       console.error("Error approving transfer:", err);
     }
@@ -79,17 +83,10 @@ export default function PendingTransfer({ setStats }) {
 
   const handleReject = async (id) => {
     const reason = prompt("Enter rejection reason:");
-    if (!reason) return; // cancel if empty
-
+    if (!reason) return;
     try {
       await inventoryTransferApi.rejectTransfer(id, tempManagerId, reason);
-      setPendingTransfers((prev) => prev.filter((t) => t.id !== id));
-      setStats((prev) => ({
-        ...prev,
-        pending: prev.pending - 1,
-        rejected: prev.rejected + 1,
-      }));
-      alert("Transfer rejected successfully!");
+      window.location.reload(); 
     } catch (err) {
       console.error("Error rejecting transfer:", err);
     }
@@ -98,13 +95,7 @@ export default function PendingTransfer({ setStats }) {
   const handleComplete = async (id) => {
     try {
       await inventoryTransferApi.completeTransfer(id, tempManagerId);
-      setPendingTransfers((prev) => prev.filter((t) => t.id !== id));
-      setStats((prev) => ({
-        ...prev,
-        approved: prev.approved - 1,
-        completed: (prev.completed || 0) + 1,
-      }));
-      alert("Transfer approved successfully!");
+      window.location.reload(); 
     } catch (err) {
       console.error("Error completing transfer:", err);
     }
@@ -133,12 +124,24 @@ export default function PendingTransfer({ setStats }) {
           {pendingTransfers.map((t) => (
             <li
               key={t.id}
-              className="flex justify-between items-center bg-white p-3 rounded-lg shadow border border-[#e7dcd3]"
+              className="flex justify-between items-start bg-white p-3 rounded-lg shadow border border-[#e7dcd3]"
             >
               <div>
                 <p className="font-semibold">
-                  {t.reason || "No reason provided"}
+                  Reason: {t.reason || "No reason provided"}
                 </p>
+
+                {/*  Items */}
+                {t.items && t.items.length > 0 && (
+                  <ul className="mt-1 text-sm text-gray-700 list-disc list-inside">
+                    {t.items.map((item) => (
+                      <li key={item.id}>
+                        Product: {item.product_name} — Qty: {item.quantity}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
                 <p className="text-sm text-gray-600">
                   To: {t.to_branch_name || "Unknown"}
                 </p>
@@ -157,7 +160,8 @@ export default function PendingTransfer({ setStats }) {
                   Status: {t.status}
                 </p>
               </div>
-              <div className="flex gap-2">
+
+              <div className="flex gap-2 mt-2">
                 {t.status === "pending" &&
                   t.from_branch_id === managerBranch && (
                     <>

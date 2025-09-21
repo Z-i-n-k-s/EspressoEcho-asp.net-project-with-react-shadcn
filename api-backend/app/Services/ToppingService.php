@@ -81,9 +81,14 @@ class ToppingService
     }
 
     public function getToppingsByProduct(string $productId)
-    {
-        return Topping::whereHas('products', function ($query) use ($productId) {
-            $query->where('product_id', $productId);
-        })->active()->get();
-    }
+{
+    return Topping::whereHas('products', function ($query) use ($productId) {
+        $query->where('product_toppings.product_id', $productId);
+    })->get();
+}
+public function getProductsByTopping(string $toppingId)
+{
+    $topping = Topping::with('products')->findOrFail($toppingId);
+    return $topping->products()->active()->get(); // Only active products
+}
 }

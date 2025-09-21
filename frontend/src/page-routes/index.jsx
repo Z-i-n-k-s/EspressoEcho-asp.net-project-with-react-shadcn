@@ -36,7 +36,10 @@ import Offers from "@/pages/user-pages/offers/Offers";
 import SignUp from "@/pages/shared-components/signup/SignUp";
 import Login from "@/pages/shared-components/login/Login";
 import MenuDetails from "@/pages/user-without-login/menu-user/MenuDetails";
-import { useSelector } from "react-redux";
+import Toppings from "@/pages/admin-pages/toppings/Toppings";
+
+
+
 
 const router = createBrowserRouter([
   {
@@ -103,6 +106,14 @@ const router = createBrowserRouter([
             element: (
               <SidebarLayout>
                 <ProductManagement />
+              </SidebarLayout>
+            ),
+          },
+          {
+            path: "admin-panel/toppings",
+            element: (
+              <SidebarLayout>
+                <Toppings />
               </SidebarLayout>
             ),
           },

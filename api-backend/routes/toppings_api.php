@@ -16,5 +16,8 @@ Route::prefix('toppings')->group(function () {
     Route::delete('/{topping}/remove-from-product/{product}', [ToppingController::class, 'removeFromProduct']);
     
     // Optional: Get toppings by product
-    Route::get('/by-product/{productId}', [ToppingController::class, 'getToppingsByProduct']);
+    Route::get('/by-product/{productId}', [ToppingController::class, 'getToppingsByProductId']);
+    // Get all products for a specific topping
+   Route::get('/{toppingId}/products', [ToppingController::class, 'getProducts']);
+
 });

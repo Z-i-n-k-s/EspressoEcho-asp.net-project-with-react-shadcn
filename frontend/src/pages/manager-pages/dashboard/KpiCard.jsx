@@ -1,28 +1,14 @@
 import { AlarmClock, ShoppingCart, Star, TrendingUp } from "lucide-react";
-import { useEffect, useState } from "react";
 
-export const KpiCard = () => {
-  const [metrics, setMetrics] = useState([]);
-  useEffect(() => {
-    fetchDashboardMetrics();
-  }, []);
-
-  const fetchDashboardMetrics = async () => {
-    try {
-      // Example placeholder data (replace with API call)
-      // const res = await fetch("/api/dashboard/metrics");
-      // const data = await res.json();
-      const data = [
-        { icon: <TrendingUp />, label: "Daily Sales", value: "$2,450" },
-        { icon: <ShoppingCart />, label: "Orders Completed", value: "135" },
-        { icon: <AlarmClock />, label: "Avg Order Time", value: "3m 22s" },
-        { icon: <Star />, label: "Top Products", value: "Cappuccino" },
-      ];
-      setMetrics(data);
-    } catch (error) {
-      console.error("Error fetching metrics:", error);
-    }
-  };
+export const KpiCard = ({ data }) => {
+  const metrics = data
+    ? [
+        { icon: <TrendingUp />, label: "Daily Sales", value: `$${data.daily_sales}` },
+        { icon: <ShoppingCart />, label: "Orders Completed", value: data.orders_completed },
+        { icon: <AlarmClock />, label: "Avg Order Time", value: data.avg_order_time },
+        { icon: <Star />, label: "Top Product", value: data.top_product },
+      ]
+    : [];
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

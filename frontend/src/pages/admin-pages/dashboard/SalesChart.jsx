@@ -1,3 +1,4 @@
+import adminDashboardApi from "@/api/admin_dashboard_api";
 import React, { useEffect, useState } from "react";
 import {
   BarChart,
@@ -8,6 +9,7 @@ import {
   Tooltip as RechartsTooltip,
   ResponsiveContainer,
 } from "recharts";
+
 
 export const SalesChart = () => {
   const [salesData, setSalesData] = useState([]);
@@ -24,53 +26,22 @@ export const SalesChart = () => {
     }
   }, [selectedBranch]);
 
-  // 📌 Fetch Branch List
   const fetchBranches = async () => {
     try {
-      // Replace with your backend API
-      // const res = await fetch("/api/branches");
-      // const data = await res.json();
-      const data = [
-        { id: "1", name: "Central Coffee Hub" },
-        { id: "2", name: "Northside Cafe" },
-        { id: "3", name: "Lakeside Brew" },
-      ];
-      setBranches(data);
-      setSelectedBranch(data[0].id); // default to first branch
+      const branchList = await adminDashboardApi.getBranches();
+      setBranches(branchList || []);
+      if (branchList && branchList.length > 0) setSelectedBranch(branchList[0].id);
     } catch (error) {
       console.error("Error fetching branches:", error);
     }
   };
 
-  // 📡 Fetch Weekly Sales Data for a Branch
   const fetchWeeklySales = async (branchId) => {
     try {
-      // const res = await fetch(`/api/dashboard/sales?branchId=${branchId}`);
-      // const data = await res.json();
-
-      // Mock data based on branchId
-      const branchSales = {
-        "1": [
-          { week: "Week 1", sales: 35000 },
-          { week: "Week 2", sales: 42000 },
-          { week: "Week 3", sales: 39000 },
-          { week: "Week 4", sales: 46000 },
-        ],
-        "2": [
-          { week: "Week 1", sales: 25000 },
-          { week: "Week 2", sales: 31000 },
-          { week: "Week 3", sales: 28000 },
-          { week: "Week 4", sales: 33000 },
-        ],
-        "3": [
-          { week: "Week 1", sales: 41000 },
-          { week: "Week 2", sales: 44000 },
-          { week: "Week 3", sales: 47000 },
-          { week: "Week 4", sales: 50000 },
-        ],
-      };
-
-      setSalesData(branchSales[branchId] || []);
+      const dashboardData = await adminDashboardApi.getDashboard();
+      // Assuming backend sends weekly sales per branch
+      const weeklySales = dashboardData.weekly_sales?.[branchId] || [];
+      setSalesData(weeklySales);
     } catch (error) {
       console.error("Error fetching weekly sales:", error);
     }

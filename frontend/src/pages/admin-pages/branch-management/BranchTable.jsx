@@ -15,7 +15,7 @@ export default function BranchTable({
     setFormData(branch);
   };
   const user = useSelector((state) => state.user.user);
-  const role = useSelector((state) => state.user.role);
+  //const role = useSelector((state) => state.user.role);
 
 //console.log("user is role",role)
 console.log("user is role",user)

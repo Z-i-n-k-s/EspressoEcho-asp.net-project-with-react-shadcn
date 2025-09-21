@@ -1,11 +1,13 @@
 import inventoryTransferApi from "@/api/Inventory_transfer_api";
 import { History } from "lucide-react";
 import React, { useEffect, useState } from "react";
-
+import { useSelector } from "react-redux";
 
 export default function TransferHistory({ setStats }) {
   const [transferHistory, setTransferHistory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const user = useSelector((state) => state.user.user);
+  const employeeId = user?.employee?.id;
 
   useEffect(() => {
     fetchTransferHistory();
@@ -14,18 +16,15 @@ export default function TransferHistory({ setStats }) {
   const fetchTransferHistory = async () => {
     setLoading(true);
     try {
-      // 1. Fetch paginated list
       const res = await inventoryTransferApi.listTransfers();
-      const transfers = res.data.data; // array of transfers
+      const transfers = res.data.data;
 
-      // 2. Fetch items for each transfer
       const transfersWithItems = await Promise.all(
         transfers.map(async (t) => {
           try {
             const detailsRes = await inventoryTransferApi.getTransfer(t.id);
             return { ...t, items: detailsRes.data.items || [] };
-          } catch (err) {
-            console.error(`Failed to fetch items for transfer ${t.id}`, err);
+          } catch {
             return { ...t, items: [] };
           }
         })
@@ -40,12 +39,36 @@ export default function TransferHistory({ setStats }) {
     }
   };
 
+  // 🔹 Correct role-based status mapping
+  const getRoleBasedStatus = (transfer) => {
+    if (transfer.status === "rejected") {
+      // anyone involved (requested_by or approved_by) can see "rejected"
+      if (
+        transfer.requested_by === employeeId ||
+        transfer.approved_by === employeeId
+      ) {
+        return "rejected";
+      }
+    }
+    if (transfer.approved_by === employeeId) return "approved"; // you approved
+    if (transfer.requested_by === employeeId && transfer.status === "pending")
+      return "pending"; // you requested
+    if (transfer.requested_by === employeeId && transfer.status === "rejected")
+      return "rejected"; // you requested rejected
+    if (transfer.received_by === employeeId) return "completed"; // you received
+    return transfer.status; // fallback for others
+  };
+
   const updateStatsFromHistory = (transfers) => {
     setStats({
-      completed: transfers.filter(t => t.status === "completed").length,
-      rejected: transfers.filter(t => t.status === "rejected").length,
-      approved: transfers.filter(t => t.status === "approved").length,
-      pending: transfers.filter(t => t.status === "pending").length,
+      completed: transfers.filter((t) => getRoleBasedStatus(t) === "completed")
+        .length,
+      rejected: transfers.filter((t) => getRoleBasedStatus(t) === "rejected")
+        .length,
+      approved: transfers.filter((t) => getRoleBasedStatus(t) === "approved")
+        .length,
+      pending: transfers.filter((t) => getRoleBasedStatus(t) === "pending")
+        .length,
     });
   };
 
@@ -66,47 +89,61 @@ export default function TransferHistory({ setStats }) {
               <th className="p-3 text-center">Qty</th>
               <th className="p-3">Status</th>
               <th className="p-3">Date</th>
+              <th className="p-3">Reason</th> {/* New column */}
             </tr>
           </thead>
           <tbody>
             {transferHistory.length === 0 ? (
               <tr>
-                <td colSpan="6" className="p-4 text-center text-[#5c4033] italic">
+                <td
+                  colSpan="7"
+                  className="p-4 text-center text-[#5c4033] italic"
+                >
                   No transfer history
                 </td>
               </tr>
             ) : (
-              transferHistory.map((t, idx) => (
-                <tr
-                  key={t.id}
-                  className={`border-b border-[#e7dcd3] last:border-b-0 hover:bg-[#f5ebe0] transition ${
-                    idx % 2 === 0 ? "bg-[#fcf9f6]" : "bg-white"
-                  }`}
-                >
-                  <td className="p-3 text-center">{t.from_branch_name}</td>
-                  <td className="p-3 text-center">{t.to_branch_name}</td>
-                  <td className="p-3 text-center">
-                    {t.items.map(i => i.product_name).join(", ")}
-                  </td>
-                  <td className="p-3 text-center">
-                    {t.items.reduce((sum, i) => sum + i.quantity, 0)}
-                  </td>
-                  <td
-                    className={`p-3 font-semibold text-center ${
-                      t.status === "completed"
-                        ? "text-green-700"
-                        : t.status === "rejected"
-                        ? "text-red-700"
-                        : t.status === "approved"
-                        ? "text-blue-700"
-                        : "text-yellow-700"
+              transferHistory.map((t, idx) => {
+                const roleStatus = getRoleBasedStatus(t);
+                return (
+                  <tr
+                    key={t.id}
+                    className={`border-b border-[#e7dcd3] last:border-b-0 hover:bg-[#f5ebe0] transition ${
+                      idx % 2 === 0 ? "bg-[#fcf9f6]" : "bg-white"
                     }`}
                   >
-                    {t.status}
-                  </td>
-                  <td className="p-3 text-center">{t.requested_at?.split(" ")[0]}</td>
-                </tr>
-              ))
+                    <td className="p-3 text-center">{t.from_branch_name}</td>
+                    <td className="p-3 text-center">{t.to_branch_name}</td>
+                    <td className="p-3 text-center">
+                      {t.items.map((i) => i.product_name).join(", ")}
+                    </td>
+                    <td className="p-3 text-center">
+                      {t.items.reduce((sum, i) => sum + i.quantity, 0)}
+                    </td>
+                    <td
+                      className={`p-3 font-semibold text-center ${
+                        roleStatus === "completed"
+                          ? "text-green-700"
+                          : roleStatus === "rejected"
+                          ? "text-red-700"
+                          : roleStatus === "approved"
+                          ? "text-blue-700"
+                          : "text-yellow-700"
+                      }`}
+                    >
+                      {roleStatus}
+                    </td>
+                    <td className="p-3 text-center">
+                      {t.requested_at?.split(" ")[0]}
+                    </td>
+                    <td className="p-3 text-center">
+                      {roleStatus === "rejected"
+                        ? t.rejection_reason || "No reason provided"
+                        : "-"}
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

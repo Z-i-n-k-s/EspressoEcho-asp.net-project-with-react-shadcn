@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { Alerts } from "./Alerts";
 import { KpiCard } from "./KpiCard";
 import { SalesChart } from "./SalesChart";
+import managerDashboardApi from "@/api/manager_dashboard_api";
+
 
 export default function ManagerDashboard() {
   const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState(null);
 
-  // Fetch all dashboard data on mount
   useEffect(() => {
     loadDashboardData();
   }, []);
@@ -14,7 +16,8 @@ export default function ManagerDashboard() {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 800)); //simulate api delay show loading
+      const data = await managerDashboardApi.getDashboardData();
+      setDashboardData(data);
     } catch (error) {
       console.error("Error loading dashboard:", error);
     } finally {
@@ -24,7 +27,6 @@ export default function ManagerDashboard() {
 
   return (
     <div className="space-y-6 min-h-screen bg-gradient-to-b from-[#f5e6d3] to-[#6b4226] p-6 font-[Inter] rounded-lg shadow-inner">
-      {/* "space-y-6 font-[Inter] bg-gradient-to-b from-[#f3e8dc] to-[#ede0d4] min-h-screen p-6 rounded-lg shadow-inner"> */}
       <h1 className="text-4xl font-extrabold text-[#5c4033] mb-6">
         ☕ Manager Dashboard
       </h1>
@@ -33,21 +35,16 @@ export default function ManagerDashboard() {
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6b4226]"></div>
           <span className="ml-3 text-[#6b4226] font-semibold">
-            Loading branches...
+            Loading dashboard...
           </span>
         </div>
       ) : (
         <>
-          {/* KPI Cards */}
-          <KpiCard />
+          <KpiCard data={dashboardData} />
 
-          {/* Sales Chart and Low Stock */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Sales Overview Chart */}
-            <SalesChart />
-
-            {/* Low Stock Alerts */}
-            <Alerts />
+            <SalesChart data={dashboardData?.sales_overview || []} />
+            <Alerts data={dashboardData?.low_stock_alerts || []} />
           </div>
         </>
       )}

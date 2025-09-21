@@ -3,22 +3,8 @@ import DailySummary from "./DailySummary";
 import DateSelector from "./DateSelector";
 import ProductBreakdown from "./ProductBreakdown";
 import SalesChart from "./SalesChart";
+import dailySalesReportApi from "@/api/Daily_sales";
 
-// Mock API call — replace with your backend endpoint
-const fetchDailyDetailedData = async (date) => {
-  // Replace with: fetch(`/api/sales/daily-details?date=${date}`)
-  return {
-    date,
-    totalSales: 2200,
-    totalProfit: 750,
-    products: [
-      { name: "Espresso", sold: 30, customers: 50, sales: 750 },
-      { name: "Latte", sold: 18, customers: 15, sales: 540 },
-      { name: "Cappuccino", sold: 10, customers: 8, sales: 300 },
-      { name: "Pastries", sold: 7, customers: 6, sales: 200 },
-    ],
-  };
-};
 
 export default function SalesReport() {
   const [day, setDay] = useState(() => {
@@ -27,21 +13,49 @@ export default function SalesReport() {
   });
   const [dailyData, setDailyData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(""); 
+
   useEffect(() => {
     const loadDaily = async () => {
       setLoading(true);
+      setError("");
+      setDailyData(null);
 
       try {
-        await new Promise((resolve) => setTimeout(resolve, 800));//simulate api delay show loading
+        const res = await dailySalesReportApi.getDailyReport(day);
 
-        const data = await fetchDailyDetailedData(day);
-        setDailyData(data);
+        // If backend sends message "No data available", handle it
+        if (res.message === "No data available") {
+          setDailyData({ totalSales: 0 });
+          return;
+        }
+
+        // Map backend response → frontend shape
+        const mappedData = {
+          date: res.date,
+          totalSales: res.total_sales,
+          totalProfit: res.total_profit,
+          salesPercentage: res.sales_percentage,
+          products: res.product_breakdown.map((p) => ({
+            name: p.product_name,
+            sold: p.quantity_sold,
+            customers: p.customers,
+            sales: p.sales,
+          })),
+        };
+
+        setDailyData(mappedData);
       } catch (err) {
-        console.error(err);
+        console.error("Failed to fetch daily sales report:", err);
+        setError(
+          err?.response?.data?.error ||
+            "Failed to fetch report. Please try another date."
+        );
       } finally {
         setLoading(false);
       }
     };
+
     loadDaily();
   }, [day]);
 
@@ -50,6 +64,12 @@ export default function SalesReport() {
       <h1 className="text-4xl font-extrabold text-[#5c4033] mb-6 flex items-center gap-3">
         ☕ Daily Sales Report
       </h1>
+
+      {/* Date Picker */}
+      <div className="flex flex-wrap gap-4 mb-6">
+        <DateSelector date={day} onChange={setDay} />
+      </div>
+
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6b4226]"></div>
@@ -57,17 +77,16 @@ export default function SalesReport() {
             Loading Reports...
           </span>
         </div>
+      ) : error ? (
+        <p className="text-red-500 py-12 text-center">{error}</p>
+      ) : dailyData?.totalSales === 0 ? (
+        <p className="text-[#6b4226] py-12 text-center">
+          No data available for the selected date
+        </p>
       ) : (
         <>
-          {/* Date Picker */}
-          <div className="flex flex-wrap gap-4 mb-6">
-            <DateSelector date={day} onChange={setDay} />
-          </div>
-
           {/* Daily Summary */}
           <DailySummary dailyData={dailyData} />
-
-          {/* Sales Overview */}
 
           {/* Product Breakdown */}
           <ProductBreakdown dailyData={dailyData} />

@@ -5,7 +5,7 @@ import TransferForm from "./TransferForm";
 import PendingTransfer from "./PendingTransfer";
 import TransferHistory from "./TransferHistory";
 import inventoryTransferApi from "@/api/Inventory_transfer_api";
-
+import { useSelector } from "react-redux";
 
 export default function ManagerInventoryDashboard() {
   const [stats, setStats] = useState({
@@ -16,20 +16,52 @@ export default function ManagerInventoryDashboard() {
   });
   const [loading, setLoading] = useState(true);
 
+  const user = useSelector((state) => state.user.user);
+  const employeeId = user?.employee?.id;
+
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [employeeId]);
+
+  // 🔹 Correct role-based status mapping
+  const getRoleBasedStatus = (transfer) => {
+    if (transfer.status === "rejected") {
+    // anyone involved (requested_by or approved_by) can see "rejected"
+    if (
+      transfer.requested_by === employeeId ||
+      transfer.approved_by === employeeId
+    ) {
+      return "rejected";
+    }
+  }
+  if (transfer.approved_by === employeeId) return "approved";   // you approved
+  if (transfer.requested_by === employeeId && transfer.status === "pending") return "pending"; // you requested
+  if (transfer.requested_by === employeeId && transfer.status === "rejected") return "rejected"; // you requested rejected
+  if (transfer.received_by === employeeId) return "completed"; // you received
+  return transfer.status; // fallback for others
+};
+
 
   const fetchStats = async () => {
     setLoading(true);
     try {
       const res = await inventoryTransferApi.listTransfers();
-      const transfers = res.data.data; 
+      const transfers = res.data.data;
+
+      const myTransfers = transfers.filter(
+        (t) =>
+          t.requested_by === employeeId ||
+          t.approved_by === employeeId ||
+          t.received_by === employeeId
+      );
+
+      const statuses = myTransfers.map((t) => getRoleBasedStatus(t)).filter(Boolean);
+
       setStats({
-        pending: transfers.filter(t => t.status === "pending").length,
-        completed: transfers.filter(t => t.status === "completed").length,
-        rejected: transfers.filter(t => t.status === "rejected").length,
-        approved: transfers.filter(t => t.status === "approved").length,
+        pending: statuses.filter((s) => s === "pending").length,
+        completed: statuses.filter((s) => s === "completed").length,
+        rejected: statuses.filter((s) => s === "rejected").length,
+        approved: statuses.filter((s) => s === "approved").length,
       });
     } catch (error) {
       console.error("Error fetching stats:", error);
@@ -47,9 +79,7 @@ export default function ManagerInventoryDashboard() {
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#6b4226]"></div>
-          <span className="ml-3 text-[#6b4226] font-semibold">
-            Loading data...
-          </span>
+          <span className="ml-3 text-[#6b4226] font-semibold">Loading data...</span>
         </div>
       ) : (
         <>
