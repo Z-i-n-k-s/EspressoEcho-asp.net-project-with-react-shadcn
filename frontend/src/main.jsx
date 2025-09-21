@@ -8,12 +8,17 @@ import { store } from "./store/store";
 import router from "./page-routes/index.jsx"; // ✅ now it’s the router object
 import { ThemeProvider } from "./theme/ThemeProvider";
 
+// ✅ Import CartProvider
+import { CartProvider } from "./pages/user-without-login/componets/CartContext"; 
+
 createRoot(document.getElementById("root")).render(
   <StrictMode>
    
       <Provider store={store}>
         <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-          <RouterProvider router={router} />
+          <CartProvider>
+            <RouterProvider router={router} />
+            </CartProvider>
         </ThemeProvider>
       </Provider>
    

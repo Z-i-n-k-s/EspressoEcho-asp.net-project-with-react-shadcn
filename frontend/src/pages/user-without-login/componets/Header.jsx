@@ -3,26 +3,29 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Menu, X, ChevronDown } from "lucide-react";
 import Logo from "../../../assets/Logo.png";
 import ResponsiveMenu from "./ResponsiveMenu";
+import { useCart } from "../componets/CartContext";
+import { useSelector } from "react-redux"; // Add this import
 
 const Header = () => {
   const [open, setOpen] = useState(false); // mobile menu
   const [servicesOpen, setServicesOpen] = useState(false); // dropdown
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // change based on auth status
+  
+  // Get actual authentication state from Redux
+  const user = useSelector((state) => state.user.user);
+  const isLoggedIn = !!user; // This will be true if user exists
 
   const navigate = useNavigate();
   const location = useLocation();
+  const { getCartItemsCount } = useCart();
 
-  // Corrected isActive logic
   const isActive = (path) => {
     if (path === "/") return location.pathname === "/";
-    if (path === "/user-panel") return location.pathname === "/user-panel"; // only exact
-    return location.pathname === path; // other exact matches
+    return location.pathname.startsWith(path);
   };
 
   const handleLogout = () => {
-    // remove auth token or user data from storage
-    setIsLoggedIn(false);
-    navigate("/");
+    // Navigate to logout route which will handle the actual logout
+    navigate("/logout");
   };
 
   return (
@@ -73,14 +76,21 @@ const Header = () => {
               Branches
             </li>
 
-            {/* Cart Icon */}
-            <li
-              className={`cursor-pointer hover:text-amber-400 font-[Inter] ${
-                isActive("/user-panel/cart") ? "text-yellow-400" : ""
-              }`}
-              onClick={() => navigate("/user-panel/cart")}
-            >
-              🛒
+            {/* Cart Icon with count */}
+            <li className="relative">
+              <div
+                className={`cursor-pointer hover:text-amber-400 font-[Inter] ${
+                  isActive("/user-panel/cart") ? "text-yellow-400" : ""
+                }`}
+                onClick={() => navigate("/user-panel/cart")}
+              >
+                🛒
+                {getCartItemsCount() > 0 && (
+                  <span className="absolute -top-2 -right-4 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {getCartItemsCount()}
+                  </span>
+                )}
+              </div>
             </li>
 
             {/* If NOT logged in → show Sign Up */}
@@ -112,7 +122,7 @@ const Header = () => {
                     <ul className="absolute top-full left-0 mt-2 w-40 bg-[#e5c185] text-black rounded shadow-lg">
                       <li
                         className={`px-4 py-2 cursor-pointer hover:bg-[#3e2723] hover:text-white ${
-                          isActive("/user-panel")
+                          isActive("/user-panel/offers")
                             ? "bg-[#3e2723] text-white"
                             : ""
                         }`}
@@ -122,25 +132,25 @@ const Header = () => {
                       </li>
                       <li
                         className={`px-4 py-2 cursor-pointer hover:bg-[#3e2723] hover:text-white ${
-                          isActive("user-panel") ? "bg-[#3e2723] text-white" : ""
+                          isActive("/user-panel/reviews") ? "bg-[#3e2723] text-white" : ""
                         }`}
-                        onClick={() => navigate("user-panel/reviews")}
+                        onClick={() => navigate("/user-panel/reviews")}
                       >
                         Review History
                       </li>
                          <li
                         className={`px-4 py-2 cursor-pointer hover:bg-[#3e2723] hover:text-white ${
-                          isActive("user-panel") ? "bg-[#3e2723] text-white" : ""
+                          isActive("/user-panel/feedback") ? "bg-[#3e2723] text-white" : ""
                         }`}
-                        onClick={() => navigate("user-panel/feedback")}
+                        onClick={() => navigate("/user-panel/feedback")}
                       >
                         All Feedbacks
                       </li>
                       <li
                         className={`px-4 py-2 cursor-pointer hover:bg-[#3e2723] hover:text-white ${
-                          isActive("/orders") ? "bg-[#3e2723] text-white" : ""
+                          isActive("/user-panel/orders") ? "bg-[#3e2723] text-white" : ""
                         }`}
-                        onClick={() => navigate("user-panel/orders")}
+                        onClick={() => navigate("/user-panel/orders")}
                       >
                         My Orders
                       </li>
