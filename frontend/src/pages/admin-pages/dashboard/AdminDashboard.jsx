@@ -3,7 +3,8 @@ import { KpiCard } from "./KpiCard";
 import { SalesChart } from "./SalesChart";
 import { Alerts } from "./Alerts";
 import { BranchTable } from "./BranchTable";
-import adminDashboardApi from "@/api/admin_dashboard_api";
+import adminDashboardApi from "@/api/Admin_dashboard_api";
+
 
 
 export const AdminDashboard = () => {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
-import adminDashboardApi from "@/api/admin_dashboard_api";
+import adminDashboardApi from "@/api/Admin_dashboard_api";
+
 
 
 export const Alerts = () => {

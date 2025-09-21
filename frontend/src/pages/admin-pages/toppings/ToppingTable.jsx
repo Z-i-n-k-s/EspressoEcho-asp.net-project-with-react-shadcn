@@ -14,67 +14,63 @@ export default function ToppingTable({
   const employeeId = user?.id;
 
   const [activeTopping, setActiveTopping] = useState(null);
-  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [selectedProducts, setSelectedProducts] = useState({}); // { productId: true/false }
   const [loading, setLoading] = useState(false);
 
-  // Ensure we always have arrays
   const safeToppings = Array.isArray(toppings) ? toppings : [];
   const safeProducts = Array.isArray(products) ? products : [];
 
-  // Get assigned product IDs from topping data
-  const getAssignedProductIds = (topping) => {
-    if (!topping || !topping.products) return [];
-    return topping.products.map(p => p.id || p.product_id);
-  };
-
-  // Open assign modal
-  const openAssignModal = (topping) => {
+  // Open assign modal → fetch per-product toppings
+  const openAssignModal = async (topping) => {
     setActiveTopping(topping);
-    // Initialize selected products with currently assigned ones
-    const assignedIds = getAssignedProductIds(topping);
-    setSelectedProducts(assignedIds);
+    const assignments = {};
+
+    for (const product of safeProducts) {
+      try {
+        const productToppings = await toppingApi.getToppingsByProduct(product.id);
+        assignments[product.id] = productToppings.some((t) => t.id === topping.id);
+      } catch (err) {
+        console.error("Error fetching toppings for product", product.id, err);
+        assignments[product.id] = false;
+      }
+    }
+
+    setSelectedProducts(assignments);
   };
 
-  // Toggle product selection
+  // Toggle selection (only for unassigned products)
   const toggleProduct = (productId) => {
-    setSelectedProducts(prev =>
-      prev.includes(productId)
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-    );
+    setSelectedProducts((prev) => ({
+      ...prev,
+      [productId]: !prev[productId],
+    }));
   };
 
   // Save assignments
   const handleSaveAssignments = async () => {
     if (!activeTopping) return;
-    
+
     setLoading(true);
     try {
-      // Get current assignments
-      const currentAssigned = getAssignedProductIds(activeTopping);
-      
-      // Determine what to add and remove
-      const toAdd = selectedProducts.filter(id => !currentAssigned.includes(id));
-      const toRemove = currentAssigned.filter(id => !selectedProducts.includes(id));
-      
-      // Process additions
-      for (const productId of toAdd) {
-        await toppingApi.assignToProduct(activeTopping.id, productId, false, employeeId);
+      for (const product of safeProducts) {
+        const shouldHave = selectedProducts[product.id];
+        const productToppings = await toppingApi.getToppingsByProduct(product.id);
+        const currentlyHas = productToppings.some((t) => t.id === activeTopping.id);
+
+        if (shouldHave && !currentlyHas) {
+          await toppingApi.assignToProduct(activeTopping.id, product.id, false, employeeId);
+        } else if (!shouldHave && currentlyHas) {
+          await toppingApi.removeFromProduct(activeTopping.id, product.id);
+        }
       }
-      
-      // Process removals
-      for (const productId of toRemove) {
-        await toppingApi.removeFromProduct(activeTopping.id, productId);
-      }
-      
-      // Refresh toppings data
+
       const updatedToppings = await toppingApi.getAllToppings();
-      if (setToppings && typeof setToppings === 'function') {
+      if (setToppings && typeof setToppings === "function") {
         setToppings(updatedToppings);
       }
-      
+
       setActiveTopping(null);
-      setSelectedProducts([]);
+      setSelectedProducts({});
       alert("Assignments updated successfully!");
     } catch (err) {
       console.error("Assignment error:", err);
@@ -88,8 +84,10 @@ export default function ToppingTable({
     if (!window.confirm("Are you sure you want to delete this topping?")) return;
     try {
       await toppingApi.deleteTopping(toppingId);
-      if (setToppings && typeof setToppings === 'function') {
-        setToppings?.((prev) => (Array.isArray(prev) ? prev.filter((t) => t.id !== toppingId) : []));
+      if (setToppings && typeof setToppings === "function") {
+        setToppings?.((prev) =>
+          Array.isArray(prev) ? prev.filter((t) => t.id !== toppingId) : []
+        );
       }
       alert("Topping deleted successfully!");
     } catch (err) {
@@ -98,16 +96,9 @@ export default function ToppingTable({
     }
   };
 
-  // Check if a product is assigned to the active topping
-  const isProductAssigned = (productId) => {
-    return selectedProducts.includes(productId);
-  };
-
   return (
     <div className="bg-[#fffaf5] p-6 rounded-2xl shadow-lg border border-[#e7dcd3]">
-      <h2 className="text-lg font-semibold text-[#5c4033] mb-4">
-        🍩 Toppings List
-      </h2>
+      <h2 className="text-lg font-semibold text-[#5c4033] mb-4">🍩 Toppings List</h2>
 
       {safeToppings.length === 0 ? (
         <p>No toppings available.</p>
@@ -124,7 +115,7 @@ export default function ToppingTable({
           <tbody>
             {safeToppings.map((t) => (
               <tr key={t.id} className="border-b border-[#e7dcd3]">
-                <td className="p-3 ">{t.name}</td>
+                <td className="p-3">{t.name}</td>
                 <td className="p-3 text-center">{t.price}</td>
                 <td className="p-3 text-center">
                   {t.is_active ? (
@@ -137,18 +128,14 @@ export default function ToppingTable({
                   {/* Edit */}
                   <button
                     onClick={() => {
-                      if (setFormData && typeof setFormData === 'function') {
-                        setFormData({
-                          name: t.name,
-                          description: t.description,
-                          price: t.price,
-                          is_active: t.is_active,
-                          created_by: t.created_by,
-                        });
-                      }
-                      if (setEditingId && typeof setEditingId === 'function') {
-                        setEditingId(t.id);
-                      }
+                      setFormData?.({
+                        name: t.name,
+                        description: t.description,
+                        price: t.price,
+                        is_active: t.is_active,
+                        created_by: t.created_by,
+                      });
+                      setEditingId?.(t.id);
                     }}
                     className="px-3 py-1 bg-[#6b4226] text-white rounded-lg flex items-center gap-1"
                   >
@@ -178,58 +165,84 @@ export default function ToppingTable({
       )}
 
       {/* Assign Modal */}
-      {activeTopping && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-[500px]">
-            <h3 className="text-lg font-semibold mb-4">
-              Assign Topping: {activeTopping.name}
-            </h3>
+{activeTopping && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+    <div className="bg-white rounded-xl shadow-lg p-6 w-[500px]">
+      <h3 className="text-lg font-semibold mb-4">
+        Assign Topping: {activeTopping.name}
+      </h3>
 
-            <div className="space-y-3 max-h-[300px] overflow-y-auto mb-4">
-              {safeProducts.length === 0 ? (
-                <p>No products available.</p>
-              ) : (
-                safeProducts.map((p) => {
-                  const assigned = isProductAssigned(p.id);
-                  return (
-                    <label
-                      key={p.id}
-                      className="flex items-center justify-between border-b pb-2"
-                    >
-                      <span>{p.name}</span>
-                      <input
-                        type="checkbox"
-                        checked={assigned}
-                        onChange={() => toggleProduct(p.id)}
-                        className="form-checkbox h-5 w-5 text-blue-600"
-                      />
-                    </label>
-                  );
-                })
-              )}
-            </div>
+      <div className="space-y-3 max-h-[300px] overflow-y-auto mb-4">
+        {safeProducts.length === 0 ? (
+          <p>No products available.</p>
+        ) : (
+          safeProducts.map((p) => {
+            const isAssigned = selectedProducts[p.id] || false;
 
-            <div className="mt-4 flex justify-end gap-2">
-              <button
-                onClick={() => {
-                  setActiveTopping(null);
-                  setSelectedProducts([]);
-                }}
-                className="px-4 py-2 bg-gray-500 text-white rounded"
+            return (
+              <div
+                key={p.id}
+                className="flex items-center justify-between border-b pb-2"
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveAssignments}
-                disabled={loading}
-                className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50"
-              >
-                {loading ? "Saving..." : "Save Assignments"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                {/* Product info */}
+                <div className="flex items-center gap-3">
+                  <img
+                    src={p.image_url}
+                    alt={p.name}
+                    className="w-12 h-12 rounded object-cover"
+                  />
+                  <div>
+                    <span className="font-medium">{p.name}</span>
+                    <p className="text-sm text-gray-500">{p.category?.name}</p>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2">
+                  <input
+  type="checkbox"
+  checked={selectedProducts[p.id] || false}
+  onClick={(e) => {
+    if (isAssigned) {
+      e.preventDefault(); // stop checkbox from toggling
+      alert(`This topping is already assigned to ${p.name}`);
+      return;
+    }
+    toggleProduct(p.id);
+  }}
+  className="form-checkbox h-5 w-5 text-blue-600"
+/>
+
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Footer buttons */}
+      <div className="mt-4 flex justify-end gap-2">
+        <button
+          onClick={() => {
+            setActiveTopping(null);
+            setSelectedProducts({});
+          }}
+          className="px-4 py-2 bg-gray-500 text-white rounded"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSaveAssignments}
+          disabled={loading}
+          className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50"
+        >
+          {loading ? "Saving..." : "Save Assignments"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
