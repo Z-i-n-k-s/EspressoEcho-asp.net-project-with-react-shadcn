@@ -7,10 +7,13 @@ use App\Models\OrderItem;
 use App\Models\Promotion;
 use App\Models\CustomerPromotion;
 use App\Models\BranchInventory;
+use App\Models\Category;
 use App\Models\DeliveryAssignment;
 use App\Models\Employee;
 use App\Models\InventoryAdjustment;
 use App\Models\Payment;
+use App\Models\ProductTopping;
+use App\Models\Topping;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
@@ -20,14 +23,10 @@ class OrderService
 {
     public function getOrders(array $filters): array
     {
-        $query = Order::with(['customer', 'branch', 'orderItems.product', 'handledBy', 'promotion']);
+        $query = Order::with(['customer', 'orderItems.product', 'orderItems.topping', 'handledBy', 'promotion']);
 
         if (isset($filters['customer_id'])) {
             $query->where('customer_id', $filters['customer_id']);
-        }
-
-        if (isset($filters['branch_id'])) {
-            $query->where('branch_id', $filters['branch_id']);
         }
 
         if (isset($filters['status'])) {
@@ -52,8 +51,8 @@ class OrderService
     {
         return Order::with([
             'customer.user',
-            'branch',
             'orderItems.product',
+            'orderItems.topping',
             'handledBy.user',
             'promotion',
             'deliveryAssignment.staff.user',
@@ -64,7 +63,7 @@ class OrderService
     public function createOrder(array $data): Order
     {
         return DB::transaction(function () use ($data) {
-            // Validate product availability and calculate totals
+            // Validate product availability, toppings, and calculate totals
             $orderDetails = $this->validateAndCalculateOrder($data);
 
             // Check and apply promo code if provided
@@ -80,7 +79,6 @@ class OrderService
             // Create order
             $order = Order::create([
                 'customer_id' => $data['customer_id'],
-                'branch_id' => $data['branch_id'],
                 'order_type' => $data['order_type'],
                 'order_status' => 'pending',
                 'subtotal' => $orderDetails['subtotal'],
@@ -93,15 +91,24 @@ class OrderService
                 'placed_at' => now()
             ]);
 
-            // Create order items
+            // Create order items with toppings
             foreach ($data['order_items'] as $item) {
-                OrderItem::create([
+                $orderItemData = [
                     'order_id' => $order->id,
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $orderDetails['product_prices'][$item['product_id']],
                     'total_price' => $item['quantity'] * $orderDetails['product_prices'][$item['product_id']]
-                ]);
+                ];
+
+                // Add topping if provided (only one topping per item in this schema)
+                if (!empty($item['toppings']) && count($item['toppings']) > 0) {
+                    $toppingId = $item['toppings'][0]; // Get first topping only
+                    $this->validateToppingForProduct($item['product_id'], $toppingId);
+                    $orderItemData['topping_id'] = $toppingId;
+                }
+
+                OrderItem::create($orderItemData);
             }
 
             // Mark promo as used if applicable
@@ -119,8 +126,165 @@ class OrderService
             // Create payment record
             $this->createPayment($order, $data);
 
-            return $order->load('orderItems.product', 'payment');
+            return $order->load(['orderItems.product', 'orderItems.topping', 'payment']);
         });
+    }
+
+    private function validateToppingForProduct(string $productId, string $toppingId): void
+    {
+        $isValid = ProductTopping::where('product_id', $productId)
+            ->where('topping_id', $toppingId)
+            ->exists();
+
+        if (!$isValid) {
+            throw new \Exception("Topping {$toppingId} is not available for product {$productId}");
+        }
+    }
+
+    public function updateOrderStatus(string $orderId, array $data): Order
+    {
+        return DB::transaction(function () use ($orderId, $data) {
+            $order = Order::with('orderItems.product')->findOrFail($orderId);
+            $currentStatus = $order->order_status;
+
+            // Validate employee role if handled_by is provided
+            if (isset($data['handled_by'])) {
+                $this->validateEmployeeRole($data['delivery_staff_id'], $data['status']);
+            }
+
+            // Update order status
+            $order->order_status = $data['status'];
+
+            // Update handled_by if provided
+            if (isset($data['handled_by'])) {
+                $order->handled_by = $data['handled_by'];
+            }
+
+            // Update timestamps based on new status
+            switch ($data['status']) {
+                case 'confirmed':
+                    $order->confirmed_at = now();
+                    break;
+                case 'preparing':
+                    $order->prepared_at = now();
+                    break;
+                case 'delivered':
+                    $order->completed_at = now();
+                    break;
+                case 'cancelled':
+                    $order->cancelled_at = now();
+                    break;
+            }
+
+            $order->save();
+
+            // Handle delivered status - DEDUCT INVENTORY HERE
+            if ($data['status'] === 'delivered') {
+                $this->handleDeliveredStatus($order);
+
+                // Get employee's branch
+                $employee = Employee::findOrFail($data['handled_by']);
+                if (!$employee->branch_id) {
+                    throw new \Exception("Employee is not assigned to any branch.");
+                }
+
+                $this->validateBranchCategoryAccess($data['handled_by'], $order->orderItems);
+                $this->deductInventory(
+                    $employee->branch_id,
+                    $order->orderItems,
+                    $order->id,
+                    $data['handled_by']
+                );
+            }
+
+            return $order->fresh(['orderItems.product']);
+        });
+    }
+
+    private function deductInventory(string $branchId, $orderItems, string $orderId, ?string $handledBy): void
+    {
+        foreach ($orderItems as $item) {
+            $product = $item->product;
+
+            // Check stock for this branch - FIXED TABLE NAME
+            $stock = DB::table('branch_inventory')
+                ->where('branch_id', $branchId)
+                ->where('product_id', $product->id)
+                ->first();
+
+            if (!$stock) {
+                throw new \Exception("Product {$product->name} is not available in this branch.");
+            }
+
+            if ($stock->quantity_on_hand < $item->quantity) {
+                throw new \Exception("Insufficient stock for product: {$product->name}");
+            }
+
+            // Deduct inventory
+            DB::table('branch_inventory')
+                ->where('branch_id', $branchId)
+                ->where('product_id', $product->id)
+                ->update([
+                    'quantity_on_hand' => $stock->quantity_on_hand - $item->quantity,
+                    'updated_at' => now(),
+                ]);
+
+            // Mark item as deducted
+            $item->inventory_deducted = true;
+            $item->save();
+
+            // Log inventory adjustment - ADDED PROPER LOGGING
+            InventoryAdjustment::create([
+                'id' => (string) Str::uuid(),
+                'branch_id' => $branchId,
+                'product_id' => $product->id,
+                'adjustment_type' => 'manual_decrease',
+                'quantity' => $item->quantity,
+                'reason' => 'Order delivery',
+                'last_updated_by' => $handledBy,
+                'reference_order_type' => 'online',
+                'reference_order_id' => $orderId,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+    }
+    private function validateAndCalculateOrder(array $data): array
+    {
+        $subtotal = 0;
+        $productPrices = [];
+
+        foreach ($data['order_items'] as $item) {
+            // Get product price with toppings
+            $productPrice = $this->getProductPrice($item['product_id'], $item['toppings'] ?? []);
+            $productPrices[$item['product_id']] = $productPrice;
+
+            // Calculate item total
+            $itemTotal = $productPrice * $item['quantity'];
+            $subtotal += $itemTotal;
+        }
+
+        return [
+            'subtotal' => $subtotal,
+            'product_prices' => $productPrices
+        ];
+    }
+
+    private function getProductPrice(string $productId, array $toppingIds = []): float
+    {
+        $product = \App\Models\Product::findOrFail($productId);
+        $basePrice = $product->base_price;
+
+        // Add topping prices (only one topping in this schema)
+        $toppingsPrice = 0;
+        if (!empty($toppingIds) && count($toppingIds) > 0) {
+            $topping = Topping::find($toppingIds[0]);
+            if ($topping) {
+                $toppingsPrice = $topping->price;
+            }
+        }
+
+        return $basePrice + $toppingsPrice;
     }
 
     private function createPayment(Order $order, array $data): void
@@ -145,64 +309,45 @@ class OrderService
         ]);
     }
 
-    public function updateOrderStatus(string $id, array $data): Order
+
+
+
+    /**
+     * Validate that cashier’s branch has access to all categories
+     */
+    private function validateBranchCategoryAccess(string $employeeId, $orderItems): void
     {
-        return DB::transaction(function () use ($id, $data) {
-            $order = Order::with('payment')->findOrFail($id);
+        $employee = Employee::findOrFail($employeeId);
 
-            // Validate employee exists and has appropriate role
-            if (isset($data['handled_by'])) {
-                $this->validateEmployeeRole($data['handled_by'], $data['status']);
+        if (!$employee->branch_id) {
+            throw new \Exception("Cashier is not assigned to any branch.");
+        }
+
+        $branchId = $employee->branch_id;
+
+        // Extract all category IDs from order items
+        $categoryIds = $orderItems->map(function ($item) {
+            return $item->product->category_id;
+        })->unique();
+
+        // Fetch assigned categories for the branch
+        $assignedCategories = DB::table('branch_categories')
+            ->where('branch_id', $branchId)
+            ->pluck('category_id')
+            ->toArray();
+
+        foreach ($categoryIds as $catId) {
+            if (!in_array($catId, $assignedCategories)) {
+                $categoryName = Category::find($catId)->name ?? 'Unknown';
+                throw new \Exception("Branch is not assigned to product category: {$categoryName}");
             }
-
-            // Check if status transition is valid
-            $this->validateStatusTransition($order->order_status, $data['status']);
-
-            $updateData = ['order_status' => $data['status']];
-            $timestampFields = [
-                'confirmed' => 'confirmed_at',
-                'preparing' => 'prepared_at',
-                'ready_for_delivery' => 'prepared_at',
-                'delivered' => 'completed_at',
-                'cancelled' => 'cancelled_at'
-            ];
-
-            if (isset($timestampFields[$data['status']])) {
-                $updateData[$timestampFields[$data['status']]] = now();
-            }
-
-            if (isset($data['handled_by'])) {
-                $updateData['handled_by'] = $data['handled_by'];
-            }
-
-            // Deduct inventory when order is confirmed
-            if ($data['status'] === 'confirmed' && $order->order_status !== 'confirmed') {
-                $this->deductInventory($order->branch_id, $order->orderItems, $order->id, $data['handled_by'] ?? null);
-            }
-
-            // Create delivery assignment when status is ready_for_delivery
-            if ($data['status'] === 'ready_for_delivery' && isset($data['delivery_staff_id'])) {
-                $this->createDeliveryAssignment($order->id, $data['delivery_staff_id'], $data['handled_by']);
-            }
-
-            // Update payment status if order is delivered and payment was cash_on_delivery
-            if (
-                $data['status'] === 'delivered' &&
-                $order->payment->payment_method === 'cash_on_delivery' &&
-                $order->payment->status === 'pending'
-            ) {
-                $order->payment->update([
-                    'status' => 'completed',
-                    'collected_by' => $data['handled_by'],
-                    'payment_date' => now()
-                ]);
-            }
-
-            $order->update($updateData);
-
-            return $order->fresh();
-        });
+        }
     }
+
+    /**
+     * Deduct inventory stock for order items
+     */
+
 
     private function validateEmployeeRole(string $employeeId, string $status): void
     {
@@ -246,31 +391,6 @@ class OrderService
         ]);
     }
 
-    private function deductInventory(string $branchId, $orderItems, string $orderId, ?string $updatedBy): void
-    {
-        foreach ($orderItems as $item) {
-            // Update branch inventory
-            DB::table('branch_inventory')
-                ->where('branch_id', $branchId)
-                ->where('product_id', $item->product_id)
-                ->decrement('quantity_on_hand', $item->quantity);
-
-            // Mark order item as inventory deducted
-            $item->update(['inventory_deducted' => true]);
-
-            // Record inventory adjustment
-            InventoryAdjustment::create([
-                'id' => (string) \Illuminate\Support\Str::uuid(),
-                'branch_id' => $branchId,
-                'product_id' => $item->product_id,
-                'adjustment_type' => 'transfer_out',
-                'quantity' => $item->quantity,
-                'reason' => 'Order confirmation',
-                'reference_order_id' => $orderId,
-                'last_updated_by' => $updatedBy
-            ]);
-        }
-    }
 
     // In OrderService.php, update the restoreInventory method
     private function restoreInventory(string $branchId, $orderItems, string $orderId, string $adjustmentType, ?string $updatedBy): void
@@ -334,46 +454,7 @@ class OrderService
         ];
     }
 
-    private function validateAndCalculateOrder(array $data): array
-    {
-        $subtotal = 0;
-        $productPrices = [];
 
-        foreach ($data['order_items'] as $item) {
-            // Get product price
-            $productPrice = $this->getProductPrice($item['product_id']);
-            $productPrices[$item['product_id']] = $productPrice;
-
-            // Calculate item total
-            $itemTotal = $productPrice * $item['quantity'];
-            $subtotal += $itemTotal;
-
-            // Check inventory availability
-            $this->checkInventory($data['branch_id'], $item['product_id'], $item['quantity']);
-        }
-
-        return [
-            'subtotal' => $subtotal,
-            'product_prices' => $productPrices
-        ];
-    }
-
-    private function getProductPrice(string $productId): float
-    {
-        $product = \App\Models\Product::findOrFail($productId);
-        return $product->base_price;
-    }
-
-    private function checkInventory(string $branchId, string $productId, int $quantity): void
-    {
-        $inventory = BranchInventory::where('branch_id', $branchId)
-            ->where('product_id', $productId)
-            ->first();
-
-        if (!$inventory || $inventory->quantity_on_hand < $quantity) {
-            throw new \Exception("Insufficient inventory for product: {$productId}");
-        }
-    }
 
     private function validateAndApplyPromoCode(string $customerId, string $promoCode, float $subtotal): array
     {
@@ -418,6 +499,24 @@ class OrderService
             'total_amount' => $totalAmount,
             'customer_promotion' => $customerPromotion
         ];
+    }
+
+
+    private function handleDeliveredStatus(Order $order): void
+    {
+        // Update payment if cash_on_delivery
+        $payment = Payment::where('order_id', $order->id)->first();
+        if ($payment && $payment->payment_method === 'cash_on_delivery') {
+            $payment->update([
+                'status' => 'completed',
+                'collected_by' => $order->handled_by, // Delivery staff ID
+                'payment_date' => now()
+            ]);
+        }
+
+        // Update delivery assignment status
+        DeliveryAssignment::where('order_id', $order->id)
+            ->update(['status' => 'delivered', 'completed_at' => now()]);
     }
 
     private function validateStatusTransition(string $currentStatus, string $newStatus): void

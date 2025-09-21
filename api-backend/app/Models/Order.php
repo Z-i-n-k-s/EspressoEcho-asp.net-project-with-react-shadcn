@@ -5,21 +5,19 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Order extends Model
 {
-    use HasFactory, HasUuids; //SoftDeletes;
+    use HasFactory, HasUuids;
 
     // Disable automatic timestamps as we're managing them manually
     public $timestamps = false;
 
     protected $fillable = [
         'customer_id',
-        'branch_id',
         'order_type',
         'order_status',
         'subtotal',
@@ -49,17 +47,10 @@ class Order extends Model
         'cancelled_at' => 'datetime',
     ];
 
-    protected $dates = ['deleted_at'];
-
     // Relationships
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
-    }
-
-    public function branch(): BelongsTo
-    {
-        return $this->belongsTo(Branch::class);
     }
 
     public function handledBy(): BelongsTo
@@ -87,16 +78,6 @@ class Order extends Model
         return $this->hasOne(Payment::class)->where('order_type', 'online');
     }
 
-    public function productReviews(): HasMany
-    {
-        return $this->hasMany(ProductReview::class);
-    }
-
-    public function customerPromotions(): HasMany
-    {
-        return $this->hasMany(CustomerPromotion::class);
-    }
-
     // Scopes
     public function scopeActive($query)
     {
@@ -108,17 +89,10 @@ class Order extends Model
         return $query->where('order_status', $status);
     }
 
-    public function scopeByBranch($query, $branchId)
-    {
-        return $query->where('branch_id', $branchId);
-    }
-
     public function scopeByCustomer($query, $customerId)
     {
         return $query->where('customer_id', $customerId);
     }
-    // Add to Order model
-
 
     public function scopeRecent($query, $days = 30)
     {
@@ -135,8 +109,6 @@ class Order extends Model
         return !in_array($this->order_status, ['on_the_way', 'delivered', 'cancelled']);
     }
 
-
-    // Add these methods to the Order model
     public function canBeCancelled(): bool
     {
         return !in_array($this->order_status, ['on_the_way', 'delivered', 'cancelled']);
@@ -201,11 +173,9 @@ class Order extends Model
 
         return $history;
     }
-    // Add these methods to the Order model
+
     public function canBeCancelledByCustomer(): bool
     {
-        // Customers can only cancel orders within 30 minutes of placement
-        // and only if order is not already being processed
         $placedAt = \Carbon\Carbon::parse($this->placed_at);
         $now = \Carbon\Carbon::now();
 
@@ -215,7 +185,6 @@ class Order extends Model
 
     public function canBeCancelledByCashier(): bool
     {
-        // Cashiers can cancel any order that hasn't been delivered
         return !in_array($this->order_status, ['delivered', 'cancelled']);
     }
 

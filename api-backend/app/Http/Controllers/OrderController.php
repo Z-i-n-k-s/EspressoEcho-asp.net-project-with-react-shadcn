@@ -19,33 +19,13 @@ class OrderController extends Controller
         $this->orderService = $orderService;
     }
 
-    public function index(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'customer_id' => 'nullable|uuid|exists:customers,id',
-            'branch_id' => 'nullable|uuid|exists:branches,id',
-            'status' => 'nullable|in:pending,confirmed,preparing,ready_for_delivery,on_the_way,delivered,cancelled',
-            'page' => 'nullable|integer|min:1',
-            'per_page' => 'nullable|integer|min:1,max:100'
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        try {
-            $orders = $this->orderService->getOrders($validator->validated());
-            return response()->json($orders);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
-        }
-    }
-      public function updateStatus(Request $request, string $id): JsonResponse
+    public function updateStatus(Request $request, string $id): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'status' => 'required|in:pending,confirmed,preparing,ready_for_delivery,on_the_way,delivered,cancelled',
             'handled_by' => 'required|uuid', // user ID
-            'delivery_staff_id' => 'required_if:status,ready_for_delivery|uuid' // user ID
+            'delivery_staff_id' => 'nullable|required_if:status,on_the_way|uuid' // user ID
         ]);
 
         if ($validator->fails()) {
@@ -128,15 +108,37 @@ class OrderController extends Controller
         }
     }
 
-      public function store(Request $request): JsonResponse
+    public function index(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'customer_id' => 'nullable|uuid|exists:customers,id',
+            'status' => 'nullable|in:pending,confirmed,preparing,ready_for_delivery,on_the_way,delivered,cancelled',
+            'page' => 'nullable|integer|min:1',
+            'per_page' => 'nullable|integer|min:1,max:100'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        try {
+            $orders = $this->orderService->getOrders($validator->validated());
+            return response()->json($orders);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'customer_id' => 'required|uuid|exists:customers,id',
-            'branch_id' => 'required|uuid|exists:branches,id',
             'order_type' => 'required|in:online',
             'order_items' => 'required|array|min:1',
             'order_items.*.product_id' => 'required|uuid|exists:products,id',
             'order_items.*.quantity' => 'required|integer|min:1',
+            'order_items.*.toppings' => 'nullable|array|max:1', // Only one topping allowed
+            'order_items.*.toppings.*' => 'uuid|exists:toppings,id',
             'delivery_address' => 'required_if:default_address,false|string|max:500',
             'default_address' => 'boolean',
             'special_instructions' => 'nullable|string|max:1000',

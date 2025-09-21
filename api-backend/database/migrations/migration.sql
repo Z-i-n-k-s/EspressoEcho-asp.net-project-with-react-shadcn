@@ -280,21 +280,6 @@ CREATE TABLE orders (
     INDEX idx_orders_customer_status_cancelled (customer_id, order_status, cancelled_at)
 ) ENGINE=InnoDB;
 
-CREATE TABLE customer_promotions (
-    id CHAR(36) PRIMARY KEY,
-    customer_id CHAR(36) NOT NULL,
-    promo_id CHAR(36) NOT NULL,
-    status ENUM('assigned', 'used', 'expired') NOT NULL DEFAULT 'assigned',
-    assigned_by ENUM('admin', 'auto_system') NOT NULL,
-    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    used_at TIMESTAMP NULL,
-    order_id CHAR(36),
-    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
-    FOREIGN KEY (promo_id) REFERENCES promotions(id) ON DELETE CASCADE,
-    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL,
-    INDEX idx_customer_promotions_status (status)
-) ENGINE=InnoDB;
-
 CREATE TABLE order_items (
     id CHAR(36) PRIMARY KEY,
     order_id CHAR(36) NOT NULL,
@@ -331,6 +316,35 @@ CREATE TABLE offline_order_items (
     inventory_deducted BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (offline_order_id) REFERENCES offline_orders(id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE  SET NULL
+) ENGINE=InnoDB;
+
+-- 1️⃣ Remove branch_id from orders
+ALTER TABLE orders
+    DROP FOREIGN KEY orders_ibfk_2,  -- check with SHOW CREATE TABLE orders for actual FK name
+    DROP INDEX idx_orders_branch,
+    DROP COLUMN branch_id;
+
+-- 2️⃣ Add topping_id to order_items
+ALTER TABLE order_items
+    ADD COLUMN topping_id CHAR(36) NULL AFTER product_id,
+    ADD CONSTRAINT fk_order_items_topping FOREIGN KEY (topping_id) REFERENCES toppings(id) ON DELETE SET NULL;
+
+
+
+
+CREATE TABLE customer_promotions (
+    id CHAR(36) PRIMARY KEY,
+    customer_id CHAR(36) NOT NULL,
+    promo_id CHAR(36) NOT NULL,
+    status ENUM('assigned', 'used', 'expired') NOT NULL DEFAULT 'assigned',
+    assigned_by ENUM('admin', 'auto_system') NOT NULL,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    used_at TIMESTAMP NULL,
+    order_id CHAR(36),
+    FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
+    FOREIGN KEY (promo_id) REFERENCES promotions(id) ON DELETE CASCADE,
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL,
+    INDEX idx_customer_promotions_status (status)
 ) ENGINE=InnoDB;
 
 -- Payment Management
