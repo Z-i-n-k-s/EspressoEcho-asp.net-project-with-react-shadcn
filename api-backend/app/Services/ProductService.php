@@ -23,7 +23,7 @@ class ProductService
     public function getAllProducts(bool $paginate = false, int $perPage = 15): Collection|LengthAwarePaginator
     {
         try {
-            $query = Product::with(['category', 'creator']);
+            $query = Product::with(['category', 'creator', 'toppings']); // Added 'toppings'
 
             return $paginate
                 ? $query->paginate($perPage)
@@ -40,7 +40,7 @@ class ProductService
     public function getProductById(string $id): Product
     {
         try {
-            return Product::with(['category', 'creator'])->findOrFail($id);
+            return Product::with(['category', 'creator','toppings'])->findOrFail($id);
         } catch (\Exception $e) {
             Log::error("Failed to fetch product with ID {$id}: " . $e->getMessage());
             throw new \Exception('Product not found: ' . $e->getMessage());
@@ -139,7 +139,7 @@ class ProductService
     public function getProductsByCategory(string $categoryId, bool $paginate = false, int $perPage = 15): Collection|LengthAwarePaginator
     {
         try {
-            $query = Product::with(['category', 'creator'])
+            $query = Product::with(['category', 'creator', 'toppings'])
                 ->where('category_id', $categoryId)
                 ->where('is_active', true)
                 ->orderBy('name');
@@ -159,7 +159,7 @@ class ProductService
     public function getActiveProducts(bool $paginate = false, int $perPage = 15): Collection|LengthAwarePaginator
     {
         try {
-            $query = Product::with(['category', 'creator'])
+            $query = Product::with(['category', 'creator', 'toppings'])
                 ->where('is_active', true)
                 ->orderBy('name');
 

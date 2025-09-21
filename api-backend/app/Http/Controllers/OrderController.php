@@ -128,7 +128,7 @@ class OrderController extends Controller
         }
     }
 
-    public function store(Request $request): JsonResponse
+      public function store(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'customer_id' => 'required|uuid|exists:customers,id',
@@ -140,7 +140,9 @@ class OrderController extends Controller
             'delivery_address' => 'required_if:default_address,false|string|max:500',
             'default_address' => 'boolean',
             'special_instructions' => 'nullable|string|max:1000',
-            'promo_code_used' => 'nullable|string|exists:promotions,code'
+            'promo_code_used' => 'nullable|string|exists:promotions,code',
+            'payment_method' => 'required|in:cash,card,bkash,nagad,cash_on_delivery',
+            'transaction_id' => 'nullable|string|max:255' // For non-cash payments
         ]);
 
         if ($validator->fails()) {
@@ -154,7 +156,6 @@ class OrderController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-
     public function customerOrderHistory(Request $request, string $customerId): JsonResponse
     {
         $validator = Validator::make($request->all(), [

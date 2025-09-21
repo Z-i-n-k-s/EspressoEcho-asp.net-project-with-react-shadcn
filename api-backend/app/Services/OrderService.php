@@ -10,9 +10,11 @@ use App\Models\BranchInventory;
 use App\Models\DeliveryAssignment;
 use App\Models\Employee;
 use App\Models\InventoryAdjustment;
+use App\Models\Payment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class OrderService
 {
@@ -114,15 +116,39 @@ class OrderService
                 Promotion::where('code', $data['promo_code_used'])->increment('current_uses');
             }
 
-            return $order->load('orderItems.product');
+            // Create payment record
+            $this->createPayment($order, $data);
+
+            return $order->load('orderItems.product', 'payment');
         });
     }
 
+    private function createPayment(Order $order, array $data): void
+    {
+        $paymentStatus = 'pending';
+
+        // If payment method is not cash_on_delivery, mark as completed
+        if ($data['payment_method'] !== 'cash_on_delivery') {
+            $paymentStatus = 'completed';
+        }
+
+        Payment::create([
+            'id' => (string) Str::uuid(),
+            'order_id' => $order->id,
+            'order_type' => 'online',
+            'payment_method' => $data['payment_method'],
+            'amount' => $order->total_amount,
+            'status' => $paymentStatus,
+            'transaction_id' => $data['transaction_id'] ?? null,
+            'collected_by' => null, // Will be set when delivered for cash_on_delivery
+            'payment_date' => now(),
+        ]);
+    }
 
     public function updateOrderStatus(string $id, array $data): Order
     {
         return DB::transaction(function () use ($id, $data) {
-            $order = Order::findOrFail($id);
+            $order = Order::with('payment')->findOrFail($id);
 
             // Validate employee exists and has appropriate role
             if (isset($data['handled_by'])) {
@@ -159,6 +185,19 @@ class OrderService
                 $this->createDeliveryAssignment($order->id, $data['delivery_staff_id'], $data['handled_by']);
             }
 
+            // Update payment status if order is delivered and payment was cash_on_delivery
+            if (
+                $data['status'] === 'delivered' &&
+                $order->payment->payment_method === 'cash_on_delivery' &&
+                $order->payment->status === 'pending'
+            ) {
+                $order->payment->update([
+                    'status' => 'completed',
+                    'collected_by' => $data['handled_by'],
+                    'payment_date' => now()
+                ]);
+            }
+
             $order->update($updateData);
 
             return $order->fresh();
@@ -170,7 +209,7 @@ class OrderService
         $employee = Employee::with('user.roles')->findOrFail($employeeId);
 
         $allowedRoles = [
-            'pending' => ['cashier' ],
+            'pending' => ['cashier'],
             'confirmed' => ['cashier'],
             'preparing' => ['cashier'],
             'ready_for_delivery' => ['cashier'],
