@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ProductReview extends Model
 {
     use HasFactory, HasUuids;
+    public $timestamps = false;
 
     protected $fillable = [
         'customer_id',

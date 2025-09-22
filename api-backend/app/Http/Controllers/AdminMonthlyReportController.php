@@ -37,9 +37,14 @@ class AdminMonthlyReportController extends Controller
         }
         
         // Calculate total orders
-        $onlineOrdersCount = Order::where('branch_id', $branchId)
-            ->where('order_status', 'delivered')
-            ->whereBetween('placed_at', [$startOfMonth, $endOfMonth])
+        // Online orders - based on your schema, orders don't have branch_id directly
+        // We need to check if there's a relationship or if we need to use delivery_assignments
+        $onlineOrdersCount = DB::table('orders')
+            ->join('delivery_assignments', 'orders.id', '=', 'delivery_assignments.order_id')
+            ->join('employees', 'delivery_assignments.staff_id', '=', 'employees.id')
+            ->where('employees.branch_id', $branchId)
+            ->where('orders.order_status', 'delivered')
+            ->whereBetween('orders.placed_at', [$startOfMonth, $endOfMonth])
             ->count();
             
         $offlineOrdersCount = OfflineOrder::where('branch_id', $branchId)
@@ -49,10 +54,14 @@ class AdminMonthlyReportController extends Controller
         $totalOrders = $onlineOrdersCount + $offlineOrdersCount;
         
         // Calculate sales
-        $onlineSales = Order::where('branch_id', $branchId)
-            ->where('order_status', 'delivered')
-            ->whereBetween('placed_at', [$startOfMonth, $endOfMonth])
-            ->sum('total_amount');
+        // Online sales
+        $onlineSales = DB::table('orders')
+            ->join('delivery_assignments', 'orders.id', '=', 'delivery_assignments.order_id')
+            ->join('employees', 'delivery_assignments.staff_id', '=', 'employees.id')
+            ->where('employees.branch_id', $branchId)
+            ->where('orders.order_status', 'delivered')
+            ->whereBetween('orders.placed_at', [$startOfMonth, $endOfMonth])
+            ->sum('orders.total_amount');
             
         $offlineSales = OfflineOrder::where('branch_id', $branchId)
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
@@ -72,26 +81,36 @@ class AdminMonthlyReportController extends Controller
         // Get sales trend for the last 6 months
         $salesTrend = $this->getSalesTrend($branchId, $month);
         
+        // Get additional metrics
+        $additionalMetrics = $this->getAdditionalMetrics($branchId, $startOfMonth, $endOfMonth);
+        
         // Create response object
         $response = new stdClass();
         $response->branch_name = $branch->name;
         $response->month = Carbon::parse($month)->format('F Y');
         $response->total_orders = $totalOrders;
+        $response->online_orders = $onlineOrdersCount;
+        $response->offline_orders = $offlineOrdersCount;
         $response->online_sales = round($onlineSales, 2);
         $response->offline_sales = round($offlineSales, 2);
         $response->total_sales = round($totalSales, 2);
         $response->total_profit = round($totalProfit, 2);
+        $response->average_order_value = $totalOrders > 0 ? round($totalSales / $totalOrders, 2) : 0;
         $response->product_breakdown = $productBreakdown;
         $response->sales_trend = $salesTrend;
+        $response->additional_metrics = $additionalMetrics;
         
         return response()->json($response);
     }
     
     private function getProductBreakdown($branchId, $startOfMonth, $endOfMonth)
     {
-        // Get online order items
-        $onlineItems = OrderItem::join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->where('orders.branch_id', $branchId)
+        // Get online order items through delivery_assignments
+        $onlineItems = DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('delivery_assignments', 'orders.id', '=', 'delivery_assignments.order_id')
+            ->join('employees', 'delivery_assignments.staff_id', '=', 'employees.id')
+            ->where('employees.branch_id', $branchId)
             ->where('orders.order_status', 'delivered')
             ->whereBetween('orders.placed_at', [$startOfMonth, $endOfMonth])
             ->select(
@@ -103,7 +122,8 @@ class AdminMonthlyReportController extends Controller
             ->get();
             
         // Get offline order items
-        $offlineItems = OfflineOrderItem::join('offline_orders', 'offline_order_items.offline_order_id', '=', 'offline_orders.id')
+        $offlineItems = DB::table('offline_order_items')
+            ->join('offline_orders', 'offline_order_items.offline_order_id', '=', 'offline_orders.id')
             ->where('offline_orders.branch_id', $branchId)
             ->whereBetween('offline_orders.created_at', [$startOfMonth, $endOfMonth])
             ->select(
@@ -154,10 +174,12 @@ class AdminMonthlyReportController extends Controller
         $formattedResults = [];
         foreach ($combinedResults as $productId => $data) {
             $product = new stdClass();
+            $product->product_id = $productId;
             $product->product_name = $products[$productId] ?? 'Unknown Product';
             $product->quantity_sold = $data['total_quantity'];
             $product->revenue = round($data['total_revenue'], 2);
             $product->profit = round($data['total_revenue'] * 0.5, 2); // Assuming 50% profit margin
+            $product->average_price = $data['total_quantity'] > 0 ? round($data['total_revenue'] / $data['total_quantity'], 2) : 0;
             $formattedResults[] = $product;
         }
         
@@ -180,12 +202,17 @@ class AdminMonthlyReportController extends Controller
             $startOfMonth = $monthDate->copy()->startOfMonth();
             $endOfMonth = $monthDate->copy()->endOfMonth();
             
-            $onlineSales = Order::where('branch_id', $branchId)
-                ->where('order_status', 'delivered')
-                ->whereBetween('placed_at', [$startOfMonth, $endOfMonth])
-                ->sum('total_amount');
+            // Online sales through delivery_assignments
+            $onlineSales = DB::table('orders')
+                ->join('delivery_assignments', 'orders.id', '=', 'delivery_assignments.order_id')
+                ->join('employees', 'delivery_assignments.staff_id', '=', 'employees.id')
+                ->where('employees.branch_id', $branchId)
+                ->where('orders.order_status', 'delivered')
+                ->whereBetween('orders.placed_at', [$startOfMonth, $endOfMonth])
+                ->sum('orders.total_amount');
                 
-            $offlineSales = OfflineOrder::where('branch_id', $branchId)
+            $offlineSales = DB::table('offline_orders')
+                ->where('branch_id', $branchId)
                 ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
                 ->sum('total_amount');
                 
@@ -199,5 +226,65 @@ class AdminMonthlyReportController extends Controller
         }
         
         return $salesTrend;
+    }
+    
+    private function getAdditionalMetrics($branchId, $startOfMonth, $endOfMonth)
+    {
+        $metrics = new stdClass();
+        
+        // Get top selling products
+        $topProducts = DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('delivery_assignments', 'orders.id', '=', 'delivery_assignments.order_id')
+            ->join('employees', 'delivery_assignments.staff_id', '=', 'employees.id')
+            ->join('products', 'order_items.product_id', '=', 'products.id')
+            ->where('employees.branch_id', $branchId)
+            ->where('orders.order_status', 'delivered')
+            ->whereBetween('orders.placed_at', [$startOfMonth, $endOfMonth])
+            ->select(
+                'products.name',
+                DB::raw('SUM(order_items.quantity) as total_quantity')
+            )
+            ->groupBy('order_items.product_id', 'products.name')
+            ->orderByDesc('total_quantity')
+            ->limit(5)
+            ->get();
+            
+        $metrics->top_selling_products = $topProducts;
+        
+        // Get order status distribution
+        $orderStatusDistribution = DB::table('orders')
+            ->join('delivery_assignments', 'orders.id', '=', 'delivery_assignments.order_id')
+            ->join('employees', 'delivery_assignments.staff_id', '=', 'employees.id')
+            ->where('employees.branch_id', $branchId)
+            ->whereBetween('orders.placed_at', [$startOfMonth, $endOfMonth])
+            ->select(
+                'orders.order_status',
+                DB::raw('COUNT(*) as count')
+            )
+            ->groupBy('orders.order_status')
+            ->get();
+            
+        $metrics->order_status_distribution = $orderStatusDistribution;
+        
+        // Get payment method distribution
+        $paymentDistribution = DB::table('payments')
+            ->join('orders', 'payments.order_id', '=', 'orders.id')
+            ->join('delivery_assignments', 'orders.id', '=', 'delivery_assignments.order_id')
+            ->join('employees', 'delivery_assignments.staff_id', '=', 'employees.id')
+            ->where('employees.branch_id', $branchId)
+            ->where('payments.order_type', 'online')
+            ->whereBetween('payments.created_at', [$startOfMonth, $endOfMonth])
+            ->select(
+                'payments.payment_method',
+                DB::raw('COUNT(*) as count'),
+                DB::raw('SUM(payments.amount) as total_amount')
+            )
+            ->groupBy('payments.payment_method')
+            ->get();
+            
+        $metrics->payment_method_distribution = $paymentDistribution;
+        
+        return $metrics;
     }
 }

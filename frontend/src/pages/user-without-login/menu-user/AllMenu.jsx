@@ -1,100 +1,63 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../componets/CartContext';
-
-const menuItems = [
-  // same menu items as before
-  {
-    id: 1,
-    name: 'Espresso',
-    category: 'Coffee',
-    price: 350,
-    description: 'Strong and bold espresso shot.',
-    image: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 2,
-    name: 'Cappuccino',
-    category: 'Coffee',
-    price: 250,
-    description: 'Espresso with steamed milk and foam.',
-    image: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 3,
-    name: 'Chocolate Muffin',
-    category: 'Sweet',
-    price: 380,
-    description: 'Soft and chocolaty muffin.',
-    image: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 4,
-    name: 'Blueberry Tart',
-    category: 'Sweet',
-    price: 420,
-    description: 'Fresh blueberry tart with creamy filling.',
-    image: 'https://images.unsplash.com/photo-1506089676908-3592f7389d4d?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 7,
-    name: 'Latte',
-    category: 'Coffee',
-    price: 320,
-    description: 'Smooth and creamy latte.',
-    image: 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 8,
-    name: 'Americano',
-    category: 'Coffee',
-    price: 280,
-    description: 'Rich americano coffee.',
-    image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 9,
-    name: 'Croissant',
-    category: 'Sweet',
-    price: 220,
-    description: 'Buttery and flaky croissant.',
-    image: 'https://images.unsplash.com/photo-1555507036-ab794f4aaaef?auto=format&fit=crop&w=400&q=80',
-  },
-  {
-    id: 10,
-    name: 'Apple Pie',
-    category: 'Sweet',
-    price: 380,
-    description: 'Warm apple pie with cinnamon.',
-    image: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=400&q=80',
-  },
-];
-
-const categories = ['All', 'Coffee', 'Sweet'];
+import productApi from '@/api/Product_api';
 
 const AllMenu = () => {
+  const [menuItems, setMenuItems] = useState([]);
+  const [categories, setCategories] = useState(['All']);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
-  const navigate = useNavigate();
 
+  const navigate = useNavigate();
   const { addToCart } = useCart();
 
-  // Filtered Items
+  // Fetch products
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await productApi.getAllProducts();
+        if (response.success) {
+          setMenuItems(response.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch products:', err);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await productApi.getAllCategories();
+        if (response.success) {
+          const categoryNames = response.data.map((c) => c.name);
+          setCategories(['All', ...categoryNames]);
+        }
+      } catch (err) {
+        console.error('Failed to fetch categories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Filter items
   const filteredItems = menuItems.filter((item) => {
-    const matchCategory = selectedCategory === 'All' || item.category === selectedCategory;
+    const matchCategory =
+      selectedCategory === 'All' || item.category.name === selectedCategory;
     const matchSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     return matchCategory && matchSearch;
   });
 
-  // Ensure current page is valid
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+
   useEffect(() => {
-    if (currentPage > totalPages) {
-      setCurrentPage(1);
-    }
-  }, [filteredItems, totalPages, currentPage]);
+    if (currentPage > totalPages) setCurrentPage(1);
+  }, [filteredItems, totalPages]);
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
@@ -109,7 +72,9 @@ const AllMenu = () => {
 
   return (
     <div className="min-h-screen bg-[#e5c185] px-6 py-10">
-      <h1 className="text-4xl font-bold mb-3 text-center text-[#4e342e]">Our Delightful Menu</h1>
+      <h1 className="text-4xl font-bold mb-3 text-center text-[#4e342e]">
+        Our Delightful Menu
+      </h1>
       <p className="text-center text-[#4e342e] mb-8 max-w-3xl mx-auto">
         Explore our curated selection of coffees and sweets — crafted to delight your senses.
       </p>
@@ -152,7 +117,9 @@ const AllMenu = () => {
       {/* Menu Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
         {currentItems.length === 0 && (
-          <p className="text-center text-[#b3a58b] col-span-full">No items match your search or filter.</p>
+          <p className="text-center text-[#b3a58b] col-span-full">
+            No items match your search or filter.
+          </p>
         )}
         {currentItems.map((item) => (
           <div
@@ -160,14 +127,16 @@ const AllMenu = () => {
             className="bg-[#4e342e] border border-[#7b5e34] rounded-lg overflow-hidden shadow-md transform transition-transform duration-300 hover:scale-105 hover:shadow-2xl hover:bg-[#a67c52]"
           >
             <img
-              src={item.image}
+              src={item.image_url}
               alt={item.name}
               className="w-full h-48 object-cover transition-transform duration-300"
             />
             <div className="p-4">
               <div className="flex justify-between items-center mb-2">
                 <h3 className="text-xl font-semibold text-[#f5f1e6]">{item.name}</h3>
-                <span className="text-lg font-bold text-[#f5f1e6]">Tk {item.price.toFixed(2)}</span>
+                <span className="text-lg font-bold text-[#f5f1e6]">
+                  Tk {parseFloat(item.base_price).toFixed(2)}
+                </span>
               </div>
               <p className="text-[#d1c4a1] mb-4 text-sm">{item.description}</p>
 

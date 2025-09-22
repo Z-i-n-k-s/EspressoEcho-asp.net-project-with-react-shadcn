@@ -3,13 +3,12 @@ import React, { createContext, useState, useContext, useEffect } from 'react';
 // Create the context
 export const CartContext = createContext();
 
-// Custom hook for easy use
+// Custom hook for easy access
 export const useCart = () => useContext(CartContext);
 
 // Provider component
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState(() => {
-    // Load from localStorage on initial load
     const savedCart = localStorage.getItem("cartItems");
     return savedCart ? JSON.parse(savedCart) : [];
   });
@@ -19,6 +18,7 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem("cartItems", JSON.stringify(cartItems));
   }, [cartItems]);
 
+  // Add item to cart
   const addToCart = (item) => {
     setCartItems(prevItems => {
       const existingItem = prevItems.find(cartItem => cartItem.id === item.id);
@@ -29,15 +29,18 @@ export const CartProvider = ({ children }) => {
             : cartItem
         );
       } else {
-        return [...prevItems, { ...item, quantity: 1 }];
+        // Convert base_price string to number
+        return [...prevItems, { ...item, quantity: 1, base_price: parseFloat(item.base_price) }];
       }
     });
   };
 
+  // Remove item from cart
   const removeFromCart = (itemId) => {
     setCartItems(prevItems => prevItems.filter(item => item.id !== itemId));
   };
 
+  // Update quantity
   const updateQuantity = (itemId, newQuantity) => {
     if (newQuantity <= 0) {
       removeFromCart(itemId);
@@ -50,14 +53,17 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // Clear cart
   const clearCart = () => {
     setCartItems([]);
   };
 
+  // Get total price
   const getCartTotal = () => {
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    return cartItems.reduce((total, item) => total + item.base_price * item.quantity, 0);
   };
 
+  // Get total items count
   const getCartItemsCount = () => {
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   };

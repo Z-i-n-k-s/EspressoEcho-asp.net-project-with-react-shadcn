@@ -17,8 +17,8 @@ class DailySalesReportController extends Controller
 {
     public function getDailySalesReport(Request $request)
     {
-        // Get the authenticated user (using Laravel's Auth facade)
-         $user = $request->attributes->get('user');
+        // Get the authenticated user
+        $user = $request->attributes->get('user');
         
         if (!$user) {
             return response()->json(['error' => 'Unauthenticated'], 401);
@@ -60,10 +60,14 @@ class DailySalesReportController extends Controller
         $endOfDay = Carbon::parse($date)->endOfDay();
         
         // Calculate total sales for the day
-        $onlineSales = Order::where('branch_id', $branchId)
-            ->where('order_status', 'delivered')
-            ->whereBetween('placed_at', [$startOfDay, $endOfDay])
-            ->sum('total_amount');
+        // Online sales through delivery_assignments
+        $onlineSales = DB::table('orders')
+            ->join('delivery_assignments', 'orders.id', '=', 'delivery_assignments.order_id')
+            ->join('employees', 'delivery_assignments.staff_id', '=', 'employees.id')
+            ->where('employees.branch_id', $branchId)
+            ->where('orders.order_status', 'delivered')
+            ->whereBetween('orders.placed_at', [$startOfDay, $endOfDay])
+            ->sum('orders.total_amount');
             
         $offlineSales = OfflineOrder::where('branch_id', $branchId)
             ->whereBetween('created_at', [$startOfDay, $endOfDay])
@@ -105,9 +109,12 @@ class DailySalesReportController extends Controller
     
     private function getProductBreakdown($branchId, $startOfDay, $endOfDay)
     {
-        // Get online order items
-        $onlineItems = OrderItem::join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->where('orders.branch_id', $branchId)
+        // Get online order items through delivery_assignments
+        $onlineItems = DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('delivery_assignments', 'orders.id', '=', 'delivery_assignments.order_id')
+            ->join('employees', 'delivery_assignments.staff_id', '=', 'employees.id')
+            ->where('employees.branch_id', $branchId)
             ->where('orders.order_status', 'delivered')
             ->whereBetween('orders.placed_at', [$startOfDay, $endOfDay])
             ->select(

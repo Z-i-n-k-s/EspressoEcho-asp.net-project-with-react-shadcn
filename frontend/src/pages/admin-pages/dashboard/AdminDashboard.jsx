@@ -45,7 +45,7 @@ export const AdminDashboard = () => {
           <KpiCard metrics={dashboardData} />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
             <div className="lg:col-span-2">
-              <SalesChart />
+              <SalesChart weeklySales={dashboardData?.weekly_sales} />
             </div>
             <Alerts alerts={dashboardData?.priority_alerts} />
           </div>

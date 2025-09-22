@@ -12,6 +12,7 @@ use App\Models\BranchInventory;
 use App\Models\InventoryTransfer;
 use App\Models\Feedback;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class AdminDashboardController extends Controller
 {
@@ -82,17 +83,21 @@ class AdminDashboardController extends Controller
         $branches = Branch::withCount('employees')
             ->get()
             ->map(function ($branch) {
-                // Calculate sales for this branch
-                $onlineBranchSales = Order::where('branch_id', $branch->id)
-                    ->where('order_status', 'delivered')
-                    ->sum('total_amount');
-                    
+                // Calculate offline sales for this branch
                 $offlineBranchSales = OfflineOrder::where('branch_id', $branch->id)
                     ->sum('total_amount');
                     
+                // Calculate online sales by joining with delivery_assignments and employees
+                $onlineBranchSales = DB::table('orders')
+                    ->join('delivery_assignments', 'orders.id', '=', 'delivery_assignments.order_id')
+                    ->join('employees', 'delivery_assignments.staff_id', '=', 'employees.id')
+                    ->where('employees.branch_id', $branch->id)
+                    ->where('orders.order_status', 'delivered')
+                    ->sum('orders.total_amount');
+                    
                 $totalBranchSales = $onlineBranchSales + $offlineBranchSales;
                 
-                // Check if branch has active promotions (you might need to adjust this logic)
+                // Check if branch has active promotions
                 $hasPromotion = Promotion::where('is_active', true)
                     ->where('valid_from', '<=', Carbon::now()->toDateString())
                     ->where('valid_to', '>=', Carbon::now()->toDateString())
