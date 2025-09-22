@@ -25,6 +25,10 @@ const feedbackApi = {
     const res = await apiClient.client.get(`/api/feedback/branch/${branchId}`);
     return res.data;
   },
+   async getAllFeedbacks() {
+    const res = await apiClient.client.get(`/api/feedback`);
+    return res.data;
+  },
 };
 
 export default feedbackApi;

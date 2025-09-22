@@ -140,4 +140,23 @@ class FeedbackController extends Controller
             ], 500);
         }
     }
+    /**
+ * Get all feedbacks
+ */
+public function getAll(): JsonResponse
+{
+    try {
+        $feedbacks = $this->feedbackService->getAllFeedbacks();
+
+        return response()->json([
+            'message' => 'All feedbacks retrieved successfully',
+            'data' => $feedbacks
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Failed to retrieve feedbacks',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
 }

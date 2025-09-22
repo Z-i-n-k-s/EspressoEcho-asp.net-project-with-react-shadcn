@@ -81,4 +81,21 @@ class FeedbackService
             }
         }, 3); // Retry transaction up to 3 times
     }
+    public function getAllFeedbacks()
+{
+    return DB::transaction(function () {
+        try {
+            return Feedback::with(['customer.user', 'branch', 'replies'])
+                ->orderBy('created_at', 'desc')
+                ->get();
+        } catch (\Exception $e) {
+            Log::error('Failed to retrieve all feedbacks', [
+                'error' => $e->getMessage()
+            ]);
+            
+            throw new \Exception('Failed to retrieve feedbacks: ' . $e->getMessage());
+        }
+    }, 3);
+}
+    
 }

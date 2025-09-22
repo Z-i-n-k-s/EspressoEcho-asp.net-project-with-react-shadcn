@@ -3,12 +3,15 @@ import PosDisplay from './PosDisplay';
 import PosPayment from './PosPayment';
 import productApi from '@/api/Product_api';
 import offlineOrdersApi from '@/api/Offline_order_api';
+import { useSelector } from 'react-redux';
 
 
 const CashierDashboard = () => {
   const [cart, setCart] = useState([]);
   const [products, setProducts] = useState([]);
-
+ const user = useSelector((state) => state.user.user);
+  const branchId = user?.employee?.branch_id;
+const cashierID = user.id
   // Fetch products from backend
   useEffect(() => {
     const fetchProducts = async () => {
@@ -23,44 +26,67 @@ const CashierDashboard = () => {
   }, []);
 
   const addToCart = (product) => {
-    setCart(prev => {
-      const exists = prev.find(item => item.id === product.id);
-      if (exists) {
-        return prev.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
+  setCart(prev => {
+    const exists = prev.find(item => item.id === product.id);
+    if (exists) {
+      // Prevent quantity exceeding inventory
+      if (exists.quantity >= product.quantity_on_hand) {
+        alert(`Cannot add more than ${product.quantity_on_hand} items for "${product.name}"`);
+        return prev;
       }
-      return [...prev, { ...product, quantity: 1 }];
-    });
-  };
+      return prev.map(item =>
+        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+      );
+    }
+    if (product.quantity_on_hand === 0) {
+      alert(`"${product.name}" is out of stock`);
+      return prev;
+    }
+    return [...prev, { ...product, quantity: 1 }];
+  });
+};
+
 
   const updateQuantity = (id, delta) => {
-    setCart(prev => prev
-      .map(item => item.id === id ? { ...item, quantity: item.quantity + delta } : item)
-      .filter(item => item.quantity > 0)
-    );
-  };
+  setCart(prev => {
+    return prev.map(item => {
+      if (item.id === id) {
+        const newQty = item.quantity + delta;
+        // Prevent exceeding stock
+        if (newQty > item.quantity_on_hand) {
+          alert(`Cannot exceed stock: ${item.quantity_on_hand}`);
+          return item;
+        }
+        return { ...item, quantity: newQty };
+      }
+      return item;
+    }).filter(item => item.quantity > 0);
+  });
+};
+
 
   // Handle order submission
   const handlePayment = async (cartItems, paymentMethod) => {
-    try {
-      const orderData = {
-        items: cartItems.map(item => ({
-          product_id: item.id,
-          quantity: item.quantity,
-          price: item.base_price,
-        })),
-        payment_method: paymentMethod,
-        total_amount: cartItems.reduce((sum, item) => sum + item.base_price * item.quantity, 0)
-      };
+  try {
+    const orderData = {
+      branch_id: branchId,       // Add branch
+      cashier_id: cashierID,     // Add cashier
+      payment_method: paymentMethod,
+      total_amount: cartItems.reduce((sum, item) => sum + item.base_price * item.quantity, 0),
+      items: cartItems.map(item => ({
+        product_id: item.id,
+        quantity: item.quantity,
+        unit_price: item.base_price,  // backend expects this field
+      }))
+    };
 
-      await offlineOrdersApi.createOrder(orderData);
-      // Clear cart after successful order
-      setCart([]);
-    } catch (err) {
-      console.error("Failed to create order:", err);
-    }
-  };
+    await offlineOrdersApi.createOrder(orderData);
+    setCart([]); // Clear cart after success
+  } catch (err) {
+    console.error("Failed to create order:", err);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-amber-50 p-6">

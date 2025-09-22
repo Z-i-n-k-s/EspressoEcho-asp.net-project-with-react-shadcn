@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Alerts } from "./Alerts";
 import { KpiCard } from "./KpiCard";
 import { SalesChart } from "./SalesChart";
-import managerDashboardApi from "@/api/manager_dashboard_api";
+import managerDashboardApi from "@/api/Manager_dashboard_api";
+
 
 
 export default function ManagerDashboard() {

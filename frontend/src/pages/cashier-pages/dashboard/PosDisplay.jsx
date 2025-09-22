@@ -1,41 +1,72 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Clock, Zap, Coffee } from 'lucide-react';
+
+import { useSelector } from 'react-redux';
+import branchApi from '@/api/Branch_api';
 import productApi from '@/api/Product_api';
-
-
-const categories = ['All', 'Hot Coffee', 'Pastries']; // can be dynamic later if needed
+import categoryApi from '@/api/Catergory_api';
 
 const PosDisplay = ({ addToCart }) => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState(['All']);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [loading, setLoading] = useState(false);
+
+  const user = useSelector((state) => state.user.user);
+  const branchId = user?.employee?.branch_id;
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    if (!branchId) return;
+
+    const fetchBranchProducts = async () => {
+      setLoading(true);
       try {
-        const res = await productApi.getAllProducts();
-        if (res.success && Array.isArray(res.data)) {
-          // map API data to match UI expectations
-          const mappedProducts = res.data.map(p => ({
-            id: p.id,
-            name: p.name,
-            base_price: parseFloat(p.base_price),
-            image_url: p.image_url,
-            is_active: p.is_active,
-            category: p.category?.name || 'Uncategorized',
-            prep_time: p.prep_time || '3-5 min', // fallback
-          }));
-          setProducts(mappedProducts);
-        } else {
-          setProducts([]);
+        //  Fetch branch inventory
+        const inventoryRes = await branchApi.getInventoryByBranch(branchId);
+        const inventoryData = inventoryRes.data || [];
+
+        //  Fetch all products
+        const productsRes = await productApi.getAllProducts();
+        const productData = productsRes.data || [];
+
+        //  Merge inventory with product details
+        const mergedProducts = inventoryData
+          .map(inv => {
+            const prod = productData.find(p => p.id === inv.product_id);
+            if (!prod) return null; // skip if product not found
+            return {
+              id: prod.id,
+              name: prod.name,
+              base_price: parseFloat(prod.base_price),
+              image_url: prod.image_url,
+              category: prod.category?.name || 'Uncategorized',
+              prep_time: prod.prep_time || '3-5 min',
+              quantity_on_hand: inv.quantity_on_hand,
+              is_active: prod.is_active,
+            };
+          })
+          .filter(Boolean); // remove nulls
+
+        setProducts(mergedProducts);
+
+        //  Fetch categories for this branch
+        const categoryRes = await categoryApi.getByBranch(branchId);
+        if (categoryRes.success && Array.isArray(categoryRes.data)) {
+          const branchCategories = categoryRes.data.map(c => c.name);
+          setCategories(['All', ...branchCategories]);
         }
       } catch (err) {
-        console.error('Failed to fetch products:', err);
+        console.error('Failed to fetch branch products or categories:', err);
         setProducts([]);
+        setCategories(['All']);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchProducts();
-  }, []);
+
+    fetchBranchProducts();
+  }, [branchId]);
 
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(search.toLowerCase());
@@ -43,9 +74,17 @@ const PosDisplay = ({ addToCart }) => {
     return matchesSearch && matchesCategory;
   });
 
+  if (loading) {
+    return (
+      <div className="text-center py-20">
+        <p className="text-stone-500 text-lg">Loading products and categories...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 bg-gradient-to-br from-white via-amber-50/30 to-orange-50/20 rounded-3xl p-8 mr-6 shadow-xl border border-amber-100/50 backdrop-blur-sm">
-      {/* Header */}
+      {/* Header & Search & Category Filter */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
@@ -140,40 +179,17 @@ const PosDisplay = ({ addToCart }) => {
               </div>
               <button
                 onClick={() => addToCart(product)}
-                className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold py-4 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105 group-hover:from-amber-700 group-hover:to-orange-700"
+                className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold py-4 px-4 rounded-xl transition-all duration-300 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-105"
               >
-                <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center group-hover:rotate-90 transition-transform duration-300">
+                <div className="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
                   <Plus className="w-3 h-3" />
                 </div>
                 Add to Cart
               </button>
             </div>
-
-            <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-amber-400/10 to-orange-400/10" />
-            </div>
           </div>
         ))}
       </div>
-
-      {filteredProducts.length === 0 && (
-        <div className="text-center py-20">
-          <div className="w-24 h-24 bg-gradient-to-br from-amber-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Search className="w-12 h-12 text-amber-400" />
-          </div>
-          <h3 className="text-2xl font-bold text-stone-700 mb-3">No items found</h3>
-          <p className="text-stone-500 text-lg mb-6">Try adjusting your search or category filter</p>
-          <button 
-            onClick={() => {
-              setSearch('');
-              setSelectedCategory('All');
-            }}
-            className="bg-gradient-to-r from-amber-600 to-orange-600 text-white font-semibold px-8 py-3 rounded-xl hover:from-amber-700 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-          >
-            Clear Filters
-          </button>
-        </div>
-      )}
     </div>
   );
 };

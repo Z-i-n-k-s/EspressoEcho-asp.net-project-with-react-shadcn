@@ -2,12 +2,15 @@ import branchAnnouncementApi from "@/api/Branch_announcement_api";
 import branchApi from "@/api/Branch_api";
 import { PlusCircle, Loader2 } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 export default function CreateAnnouncement({
   setActiveAnnouncements,
   activeAnnouncements,
 }) {
   const [branches, setBranches] = useState([]);
+     const user = useSelector((state) => state.user.user);
+      console.log(user)
   const [branch, setBranch] = useState("all");
   const [newAnnouncement, setNewAnnouncement] = useState("");
   const [type, setType] = useState("info"); // type dropdown
@@ -36,7 +39,7 @@ export default function CreateAnnouncement({
       branch_id: branch === "all" ? null : branch,
       message: newAnnouncement,
       type,
-      created_by: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", // temp user id
+      created_by: user.id, // temp user id
       is_active: true,
     };
 
@@ -69,6 +72,7 @@ export default function CreateAnnouncement({
     setNewAnnouncement("");
     setType("info");
     setBranch("all");
+    window.location.reload();
   } catch (error) {
     console.error("Failed to create announcement", error);
   } finally {

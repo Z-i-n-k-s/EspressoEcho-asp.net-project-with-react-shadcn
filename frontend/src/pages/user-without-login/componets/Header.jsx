@@ -144,7 +144,7 @@ const Header = () => {
                         }`}
                         onClick={() => navigate("/user-panel/feedback")}
                       >
-                        All Feedbacks
+                        Give Feedback
                       </li>
                       <li
                         className={`px-4 py-2 cursor-pointer hover:bg-[#3e2723] hover:text-white ${
